@@ -1,8 +1,10 @@
 classdef Mesh
+    
   properties
     triangulation
     points
   end
+  
   methods
     %tri_in is a list of triangles, where the points are given by the index
     % of the point in the list of points p_in

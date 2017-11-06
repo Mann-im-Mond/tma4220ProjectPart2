@@ -23,6 +23,7 @@ for i=1:4
         end
     end
 end
+
 if success
     disp('[unittest/basicTriangleTest] succeeded!')
 else

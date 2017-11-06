@@ -1,7 +1,9 @@
 classdef BasicTriangle
+    
   properties (Access = private)
     dim
   end
+  
   methods
     function obj = BasicTriangle(dim_in)
      obj.dim = dim_in;
