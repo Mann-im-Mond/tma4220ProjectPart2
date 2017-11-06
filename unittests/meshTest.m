@@ -65,7 +65,7 @@ end
 
 
 if success
-    disp('[unittest/meshTest] succeeded!')
+    disp([pad('[unittest/meshTest]',40), 'succeeded!'])
 else
-    disp('[unittest/meshTest] failed!')
+    disp([pad('[unittest/meshTest]',40), 'failed!'])
 end

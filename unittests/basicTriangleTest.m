@@ -25,9 +25,9 @@ for i=1:4
 end
 
 if success
-    disp('[unittest/basicTriangleTest] succeeded!')
+    disp([pad('[unittest/basicTriangleTest]',40), 'succeeded!'])
 else
-    disp('[unittest/basicTriangleTest] failed!')
+    disp([pad('[unittest/basicTriangleTest]',40), ' failed!'])
 end
 
 

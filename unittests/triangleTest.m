@@ -1,4 +1,5 @@
 addpath('../utils/')
+addpath('../helperFunctions')
 tri1 = Triangle([0,0,0;1,1,0;1,1,1]);
 tri2 = Triangle([0,0,0;1,1,0;1,1,1;2,0,0]);
 J1 = tri1.getJacobiFromBasis();
@@ -54,11 +55,7 @@ if not(equalUpTo(vol2,realVol2,10e-6))
 end
 
 if success
-    disp('[unittest/triangleTest] succeeded!')
+    disp([pad('[unittest/triangleTest]',40), 'succeeded!'])
 else
-    disp('[unittest/triangleTest] failed!')
-end
-
-function b = equalUpTo(x,y, eps)
-    b = (abs(x-y) < eps);
+    disp([pad('[unittest/triangleTest]',40), 'failed!'])
 end
