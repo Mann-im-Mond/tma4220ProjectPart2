@@ -11,15 +11,14 @@ Work with the following easy mesh.
 points = [0,0;2,0;1,1;0,2;2,2];
 triangles = [1,2,3;1,3,4;2,3,5;3,4,5];
 success = true;
-mesh = Mesh(triangles, points);
+neumannIdentifier = @(x) (x(1)>.5);
+mesh = Mesh(triangles, points, neumannIdentifier);
 boundaryEdges = mesh.boundaryEdges();
 realBoundaryEdges = [1,2;1,4;2,5;4,5];
-
-neumannIdentifier = @(x) (x(1)>.5);
 realDirichletNodes = [1;4];
-dirichletNodes = mesh.dirichletNodes(neumannIdentifier);
+dirichletNodes = mesh.dirichletBoundaryNodes;
 realNeumannFaces = [2,5];
-neumannFaces = mesh.neumannFaces(neumannIdentifier);
+neumannFaces = mesh.neumannBoundaryFaces;
 
 % TODO we can summarize the following in a more general test function.
 

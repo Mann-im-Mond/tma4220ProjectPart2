@@ -1,6 +1,8 @@
 classdef Mesh
     
   properties
+    neumannBoundaryFaces
+    dirichletBoundaryNodes
     triangulation
     points
   end
@@ -8,9 +10,11 @@ classdef Mesh
   methods
     %tri_in is a list of triangles, where the points are given by the index
     % of the point in the list of points p_in
-    function obj = Mesh(tri_in,p_in)
+    function obj = Mesh(tri_in,p_in,neumannIdentifier)
       obj.triangulation = tri_in;
       obj.points = p_in;
+      obj.dirichletBoundaryNodes = obj.dirichletNodes(neumannIdentifier);
+      obj.neumannBoundaryFaces = obj. neumannFaces(neumannIdentifier);
     end
     
     %returns the cornerpoints of a triangle (or higher dim equivalent)
