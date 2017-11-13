@@ -42,6 +42,14 @@ classdef Triangle
           edges_in_new_basis = O\J;
           vol = abs(det(edges_in_new_basis))/factorial(obj.dimTriangle);
         end
+        
+        function com = centerOfMass(obj)
+            com = zeros(obj.dimSpace,1);
+            for corner = obj.cornerPoints(:,:)'
+                com = com + corner;
+            end
+            com = com / (obj.dimTriangle +1);
+        end
     end
     
 end

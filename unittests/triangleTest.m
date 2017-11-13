@@ -19,6 +19,10 @@ vol2 = tri2.getVolume();
 realVol1 = sqrt(2)/2;
 realVol2 = 1/3;
 success = true;
+com1 = tri1.centerOfMass()
+com2 = tri2.centerOfMass()
+realCom1 = [2/3,2/3,1/3]
+realCom2 = [1,1/2,1/4]
 
 %check the Jacobi matrices
 if not(isequal(J1,realJ1))
@@ -51,6 +55,16 @@ if not(equalUpTo(vol1,realVol1,10e-6))
 end
 if not(equalUpTo(vol2,realVol2,10e-6))
     disp('The volumes are not correct!')
+ 	success = false;
+end
+
+%check the center of mass
+if not(equalUpTo(com1,realCom1,10e-6))
+    disp('The centers of mass are not correct!')
+ 	success = false;
+end
+if not(equalUpTo(com2,realCom2,10e-6))
+    disp('The centers of mass are not correct!')
  	success = false;
 end
 
