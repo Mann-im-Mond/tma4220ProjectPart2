@@ -19,10 +19,10 @@ vol2 = tri2.getVolume();
 realVol1 = sqrt(2)/2;
 realVol2 = 1/3;
 success = true;
-com1 = tri1.centerOfMass()
-com2 = tri2.centerOfMass()
-realCom1 = [2/3,2/3,1/3]
-realCom2 = [1,1/2,1/4]
+com1 = tri1.centerOfMass();
+com2 = tri2.centerOfMass();
+realCom1 = [2/3,2/3,1/3];
+realCom2 = [1,1/2,1/4];
 
 %check the Jacobi matrices
 if not(isequal(J1,realJ1))
