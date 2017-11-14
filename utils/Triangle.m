@@ -31,6 +31,15 @@ classdef Triangle
                 + obj.cornerPoints(obj.dimTriangle+1,:)')';
         end
         
+        %returns the transformation function from this one to basis Triangle
+        % TODO implement this for general triangles - by now the matrix is
+        % not necessarily quradratic.
+        function trafo = getTrafoToBasis(obj)
+            J = obj.getJacobiFromBasis();
+            trafo = @(x) (inv(J)*((x)' ...
+                - obj.cornerPoints(obj.dimTriangle+1,:)'))';
+        end    
+        
         %returns the volume of this triangle
         function vol = getVolume(obj)
           if obj.dimTriangle==1

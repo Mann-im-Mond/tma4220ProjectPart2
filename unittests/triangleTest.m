@@ -8,6 +8,8 @@ realJ1 = [-1,0;-1,0;-1,-1];
 realJ2 = [-2,-1,-1;0,1,1;0,0,1];
 trafo1 = tri1.getTrafoFromBasis();
 trafo2 = tri2.getTrafoFromBasis();
+invTrafo1 = tri1.getTrafoToBasis();
+invTrafo2 = tri2.getTrafoToBasis();
 btri1 = BasicTriangle(2);
 btri2 = BasicTriangle(3);
 corners1 = tri1.cornerPoints;
@@ -44,6 +46,22 @@ end
 for i=1:4
     if not(isequal(trafo2(bcorners2(i,:)),corners2(i,:)))
         disp('The trafo function is not working correct!')
+        success = false;
+    end
+end
+%{
+for i=1:3
+    if or(not(isequal(trafo1(invTrafo1(corners1(i,:))),corners1(i,:))), ...
+            not(isequal(invTrafo1(trafo1(bcorners1(i,:))),bcorners1(i,:))))
+        disp('The invers trafo function is not working correct!')
+        success = false;
+    end
+end
+%}
+for i=1:4
+    if or(not(isequal(trafo2(invTrafo2(corners2(i,:))),corners2(i,:))), ...
+            not(isequal(invTrafo2(trafo2(bcorners2(i,:))),bcorners2(i,:))))
+        disp('The invers trafo function is not working correct!')
         success = false;
     end
 end
