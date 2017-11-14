@@ -40,6 +40,31 @@ if(not(isequal(stiffnessMatrix,realStiffnessMatrix)))
     success=false; 
 end
 
+% --- Check ODE Matrix ---
+quadFunc = QuadratFunctionGenerator().getQuadratureFunction(2);
+odeMatrix = solver.getODEMatrix();
+realODEMatrix = zeros(length(points));
+basicTriangle = BasicTriangle(2);
+for cornerIndices = triangles'
+    corners = points(cornerIndices,:);
+    triangle = Triangle(corners);
+    invTrafo = triangle.getTrafoToBasis();
+    for i=1:3
+        for j=1:3
+            phi_i = basicTriangle.getBasisFunction(i);
+            phi_j = basicTriangle.getBasisFunction(j);
+            eval = @(x) phi_i(invTrafo(x)).*phi_j(invTrafo(x));
+            c_i = cornerIndices(i);
+            c_j = cornerIndices(j);
+            realODEMatrix(c_i,c_j)=realODEMatrix(c_i,c_j) + ...
+                quadFunc(corners,eval);
+        end
+    end
+end
+if(not(equalUpTo(odeMatrix,realODEMatrix,1e-6)))
+    disp('The ODE matrices are not calculated correctly!')
+    success=false; 
+end
 
 
 if success

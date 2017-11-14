@@ -59,7 +59,22 @@ classdef HeatEquationSolver
         end
         
         function M = getODEMatrix(obj)
-        
+            dim = obj.mesh.dim();
+            triangles = obj.mesh.triangulation;
+            points = obj.mesh.points;
+            M = zeros(length(points));
+            basicTriangle = BasicTriangle(dim);
+            
+            productIntegrals = basicTriangle.productBasisFunctionIntegralMatrix();
+            
+            for cornerIndices = triangles'
+                corners = obj.mesh.corners(cornerIndices);
+                triangle = Triangle(corners);
+                J = triangle.getJacobiFromBasis();
+                M(cornerIndices,cornerIndices) = ...
+                    M(cornerIndices,cornerIndices) + ...
+                    abs(det(J))*productIntegrals;
+            end
         end
         
         function N = getNeumannVector(obj)
