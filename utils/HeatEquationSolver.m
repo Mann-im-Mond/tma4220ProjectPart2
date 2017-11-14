@@ -54,8 +54,8 @@ classdef HeatEquationSolver
                 triangle = Triangle(corners);
                 J = triangle.getJacobiFromBasis();
                 G = inv(transpose(J))*B;                                    % only a helpingt step towards our submatrix
-                subMatrix = transpose(G) * G * abs(det(J))/factorial(dim);  % this is our submatrix
-                subMatrix = subMatrix * obj.alpha(triangle.centerOfMass()); % here we scale the submatrix by the termal factor alpha, which belongs to this triangle
+                subMatrix = transpose(G) * G * abs(det(J))/factorial(dim)...  % this is our submatrix
+                    * obj.alpha(triangle.centerOfMass()); % here we scale the submatrix by the termal factor alpha, which belongs to this triangle
                 A(cornerIndices,cornerIndices) = ...
                     A(cornerIndices,cornerIndices) + subMatrix;
             end
@@ -74,9 +74,10 @@ classdef HeatEquationSolver
                 corners = obj.mesh.corners(cornerIndices);
                 triangle = Triangle(corners);
                 J = triangle.getJacobiFromBasis();
+                alphafactor = obj.alpha(triangle.centerOfMass());
                 M(cornerIndices,cornerIndices) = ...
                     M(cornerIndices,cornerIndices) + ...
-                    abs(det(J))*productIntegrals;
+                    abs(det(J))*productIntegrals*alphafactor;
             end
         end
         
@@ -101,12 +102,16 @@ classdef HeatEquationSolver
                 volumeFace = triangle.getVolume();
                 volumeBasic = 1/(factorial(subdim));
                 quot = abs(volumeFace/volumeBasic);
+                alphafactor = obj.alpha(triangle.centerOfMass());
+                
                 % add the amound of the integral over this basis element
 
                 for i=1:(subdim+1)
                     phi = basicTriangle.getBasisFunction(i);
                     idx = face(i);
-                    N(idx) = N(idx) + quad(basicCorners,@(x) transformedNeumann(x).*phi(x).*quot);
+                    N(idx) = N(idx) + ...
+                        quad(basicCorners,@(x) transformedNeumann(x).*...
+                        phi(x).*quot.*alphafactor);
                 end
             end
         end
