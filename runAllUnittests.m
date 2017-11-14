@@ -1,3 +1,5 @@
+clear all
+path(pathdef)
 folder  = 'unittests';
 list    = dir(fullfile(folder, '*.m'));
 nFile   = length(list);
@@ -11,3 +13,5 @@ for k = 1:nFile
     fprintf('failed: %s\n', file);
   end
 end
+clear all
+path(pathdef)
