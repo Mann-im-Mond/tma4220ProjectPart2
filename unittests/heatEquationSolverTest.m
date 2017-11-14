@@ -1,4 +1,5 @@
 addpath('../utils/')
+addpath('../helperFunctions/')
 %{
 Work with the following easy mesh.
  (0,2)  ___________ (2,2) 
@@ -79,6 +80,23 @@ dirichletVector = solver.getDirichletVector();
 realDirichletVector = [-1;-3;4;0;0;0];
 if(not(equalUpTo(dirichletVector,realDirichletVector,1e-6)))
     disp('The Dirichlet Vector is not calculated correctly!')
+    success=false; 
+end
+
+% --- Check Remove Dirichlet Boundary ---
+% I decided not to check this, as the chek would look the same, as the
+% function.
+solver = solver.initializeSystem();
+solver.stiffnessMatrix;
+solver.odeMatrix;
+solver.neumannVector;
+solver.dirichletVector;
+
+% --- Check Reinsert Dirichlet Boundary ---
+uWithBoundary = solver.reinsertDirichletBoundary([2;3;5;7]);
+realuWithBoundary = [1;3;2;3;5;7];
+if(not(equalUpTo(uWithBoundary,realuWithBoundary,1e-6)))
+    disp('The Boundary is not inserted correctly afterward!')
     success=false; 
 end
 
