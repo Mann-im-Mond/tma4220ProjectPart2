@@ -1,3 +1,4 @@
+path(pathdef)
 addpath('../utils/')
 addpath('../helperFunctions')
 quadGen = QuadratFunctionGenerator();

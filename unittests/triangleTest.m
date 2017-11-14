@@ -1,3 +1,4 @@
+path(pathdef)
 addpath('../utils/')
 addpath('../helperFunctions')
 tri1 = Triangle([0,0,0;1,1,0;1,1,1]);

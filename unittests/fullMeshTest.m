@@ -1,3 +1,4 @@
+path(pathdef)
 addpath('../utils/')
 %{
 Work with the following easy mesh.
