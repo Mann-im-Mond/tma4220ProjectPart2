@@ -17,7 +17,7 @@ alpha = @(x) x(1)*0 +1;
 timeInterval = 0;
 u0 = @(x) x(1)*0 +0;
 gD = @(x) x(1)*0 +0;
-gN = @(x) x(1)*0 +0;
+gN = @(x) x(1)*1 + x(2)*1 +0;
 
 %to display the mesh uncommand the following
 triplot(triangles,points(:,1),points(:,2));
@@ -66,6 +66,13 @@ if(not(equalUpTo(odeMatrix,realODEMatrix,1e-6)))
     success=false; 
 end
 
+% --- Check Neumann Vector ---
+neumannVector = solver.getNeumannVector();
+realNeumannVector = [0;0;0;0;4/3;5/3];
+if(not(equalUpTo(neumannVector,realNeumannVector,1e-6)))
+    disp('The Neumann Vector is not calculated correctly!')
+    success=false; 
+end
 
 if success
     disp([pad('[unittest/heatEuationSolverTest]',40), 'succeeded!'])
