@@ -6,6 +6,7 @@ classdef HeatEquationSolver
         alpha
         initialValues
         dirichletFunction
+        derivedDirichletFunction
         neumannFunction
         
         stiffnessMatrix
@@ -21,6 +22,8 @@ classdef HeatEquationSolver
             obj.alpha = alpha;
             obj.initialValues = initialValues;
             obj.dirichletFunction = dirichletFunction;
+            % TODO we have to calculate this derivative function.
+            obj.derivedDirichletFunction = @(x) x(1)*0;
             obj.neumannFunction = neumannFunction;
         end
         
@@ -108,8 +111,19 @@ classdef HeatEquationSolver
             end
         end
         
-        function D = getDirichletVector(onj)
-            
+        function D = getDirichletVector(obj)
+            A = obj.getStiffnessMatrix();
+            M = obj.getODEMatrix();
+            points = obj.mesh.points;
+            dirichletNodes = obj.mesh.dirichletBoundaryNodes;
+            dirichletValues = zeros(length(points),1);
+            dirichletDerivatives = zeros(length(points),1);
+            for idx = dirichletNodes
+                coord = points(idx,:);
+                dirichletValues(idx) = obj.dirichletFunction(coord);
+                dirichletDerivatives(idx) = obj.derivedDirichletFunction(coord);
+            end
+            D = -A*dirichletValues + M*dirichletDerivatives;
         end
         
         function [] = removeDirichletBoundary(obj)

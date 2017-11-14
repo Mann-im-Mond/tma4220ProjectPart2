@@ -16,7 +16,7 @@ mesh = FullMesh(triangles, points, neumannIdentifier);
 alpha = @(x) x(1)*0 +1;
 timeInterval = 0;
 u0 = @(x) x(1)*0 +0;
-gD = @(x) x(1)*0 +0;
+gD = @(x) x(2)*1 +1;
 gN = @(x) x(1)*1 + x(2)*1 +0;
 
 %to display the mesh uncommand the following
@@ -71,6 +71,14 @@ neumannVector = solver.getNeumannVector();
 realNeumannVector = [0;0;0;0;4/3;5/3];
 if(not(equalUpTo(neumannVector,realNeumannVector,1e-6)))
     disp('The Neumann Vector is not calculated correctly!')
+    success=false; 
+end
+
+% --- Check Dirichlet Vector ---
+dirichletVector = solver.getDirichletVector();
+realDirichletVector = [-1;-3;4;0;0;0];
+if(not(equalUpTo(dirichletVector,realDirichletVector,1e-6)))
+    disp('The Dirichlet Vector is not calculated correctly!')
     success=false; 
 end
 
