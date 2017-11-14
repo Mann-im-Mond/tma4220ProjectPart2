@@ -1,4 +1,4 @@
-classdef Mesh
+classdef FullMesh
     
   properties
     neumannBoundaryFaces
@@ -10,7 +10,7 @@ classdef Mesh
   methods
     %tri_in is a list of triangles, where the points are given by the index
     % of the point in the list of points p_in
-    function obj = Mesh(tri_in,p_in,neumannIdentifier)
+    function obj = FullMesh(tri_in,p_in,neumannIdentifier)
       obj.triangulation = tri_in;
       obj.points = p_in;
       obj.dirichletBoundaryNodes = obj.dirichletNodes(neumannIdentifier);
