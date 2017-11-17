@@ -10,12 +10,7 @@ timeInterval=TimeInterval(t_0,t_max,h,n_to_plot);
 
 success = true;
 
-plot(timeInterval.descreteInterval,'o');
-answer=input(['Do you see ',num2str(timeInterval.getNumberOfSteps()+1)',' circles in the plot? (yes/no)'],'s');
-while(not(ismember(answer,{'yes','no'})))
-    answer=input(['Do you see ',num2str(timeInterval.getNumberOfSteps()+1)',' circles in the plot? (yes/no)'],'s');
-end
-if(isequal(answer,'no'))
+if(not(isequal(length(timeInterval.descreteInterval) ,timeInterval.getNumberOfSteps()+1)))
     disp('Number of steps not calculated correctly.');
     success=false;
 end
@@ -46,12 +41,8 @@ end
 timeInterval.t_max=t_max;
 numberOfSteps=10;
 timeInterval.setStepWidthFromNumberOfSteps(numberOfSteps);
-plot(timeInterval.descreteInterval(),'o');
-answer=input(['Do you see ',num2str(timeInterval.getNumberOfSteps()+1),' circles in the plot? (yes/no)'],'s');
-while(not(ismember(answer,{'yes','no'})))
-    answer=input(['Do you see ',num2str(numberOfSteps+1),' circles in the plot? (yes/no)'],'s');
-end
-if(isequal(answer,'no'))
+
+if(not(isequal(length(timeInterval.descreteInterval) ,timeInterval.getNumberOfSteps()+1)))
     disp('Width not correctly set from given number of steps');
     success=false;
 end
