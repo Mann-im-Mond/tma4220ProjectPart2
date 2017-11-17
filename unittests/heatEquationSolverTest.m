@@ -93,6 +93,7 @@ solver.stiffnessMatrix;
 solver.odeMatrix;
 solver.neumannVector;
 solver.dirichletVector;
+%solver.solve()
 
 % --- Check Reinsert Dirichlet Boundary ---
 uRaw = zeros(4,11);

@@ -4,7 +4,7 @@ classdef HeatEquationSolver < handle
         mesh
         timeInterval
         alpha
-        initialValues
+        initialValueFunction
         dirichletFunction
         derivedDirichletFunction
         neumannFunction
@@ -13,14 +13,15 @@ classdef HeatEquationSolver < handle
         odeMatrix
         neumannVector
         dirichletVector
+        initialValues
     end
     
     methods
-        function obj = HeatEquationSolver(mesh,timeInterval,alpha,initialValues,dirichletFunction,neumannFunction)
+        function obj = HeatEquationSolver(mesh,timeInterval,alpha,initialValueFunction,dirichletFunction,neumannFunction)
             obj.mesh = mesh;
             obj.timeInterval = timeInterval;
             obj.alpha = alpha;
-            obj.initialValues = initialValues;
+            obj.initialValueFunction = initialValueFunction;
             obj.dirichletFunction = dirichletFunction;
             syms x t;
             h = matlabFunction(diff(dirichletFunction, t),'vars', [x t]);
@@ -30,7 +31,15 @@ classdef HeatEquationSolver < handle
         end
         
         function u = solve(obj)
-            % TODO this has still to be implemented!
+            obj.initializeSystem();
+            V = obj.getSummedVectors();
+            M = obj.stiffnessMatrix;
+            A = obj.odeMatrix;
+            interval = obj.timeInterval;
+            u_0 = obj.initialValues;
+            timeSolver = TimeSolver(u_0,interval,M,A,V);
+            uRaw = timeSolver.solve('safeOutputEvery',interval.n_to_plot);
+            u = obj.reinsertDirichletBoundary(uRaw);
         end 
     end
     
@@ -45,14 +54,33 @@ classdef HeatEquationSolver < handle
                 obj.neumannVector = @(t) obj.getNeumannVector(@(x) obj.neumannFunction(x,t));
             end
             if(diff(obj.dirichletFunction, t) == 0)
-                obj.dirichletVector = obj.dirichletVector(@(x) obj.dirichletFunction(x,0), ...
+                obj.dirichletVector = obj.getDirichletVector(@(x) obj.dirichletFunction(x,0), ...
                     @(x) obj.derivedDirichletFunction(x,0));
             else
-                obj.dirichletVector = @(t) obj.dirichletVector(@(x) obj.dirichletFunction(x,t), ...
+                obj.dirichletVector = @(t) obj.getDirichletVector(@(x) obj.dirichletFunction(x,t), ...
                     @(x) obj.derivedDirichletFunction(x,t));
             end
             reset(symengine);
+            obj.initialValues = obj.getInitialValues();
             obj.removeDirichletBoundaryFromMatrices();
+        end
+        
+        function V = getSummedVectors(obj)
+            dV = obj.dirichletVector;
+            nV = obj.neumannVector;
+            if isa(dV, 'function_handle')
+                if isa(nV, 'function_handle')
+                    V = @(t) dV(t) + nV(t);
+                else
+                    V = @(t) dV(t) + nV;
+                end
+            else
+                if isa(nV, 'function_handle')
+                    V = @(t) dV + nV(t);
+                else
+                    V = dV + nV;
+                end
+            end
         end
         
         function A = getStiffnessMatrix(obj)
@@ -161,7 +189,6 @@ classdef HeatEquationSolver < handle
             points = obj.mesh.points;
             timeSteps = fix((obj.timeInterval.t_max-obj.timeInterval.t_0) ...
                 /(obj.timeInterval.h*obj.timeInterval.n_to_plot))+1;
-            
             if not(timeSteps == length(uNoBoundary(1,:)))
                 error('Our solution has the wrong size');
             end
@@ -178,7 +205,14 @@ classdef HeatEquationSolver < handle
                 t = obj.timeInterval.t_0 + t_step ...
                     * obj.timeInterval.h * obj.timeInterval.n_to_plot;
             end
-            
+        end
+        
+        function u_0 = getInitialValues(obj)
+            u_0 = zeros(length(obj.mesh.points(:,1)),1);
+            for i=1:length(u_0)
+                u_0(i) = obj.initialValueFunction(obj.mesh.points(i,:));
+            end
+            u_0(obj.mesh.dirichletBoundaryNodes) = [];
         end
     end
 end
