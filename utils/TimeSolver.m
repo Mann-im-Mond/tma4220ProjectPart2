@@ -95,10 +95,10 @@ classdef TimeSolver < handle
                 case {'euler','forwardEuler','Euler','forward euler','forward Euler','Forward Euler'}
                     if(VisFunctionHandle)
                         obj.rightSideVector=@(t) obj.interval.h.*obj.V(t);
-                        obj.iteratorRightHandSide=@(v,t) v+obj.interval.h.*obj.A*v+obj.rightSideVector(t);
+                        obj.iteratorRightHandSide=@(v,t) v+TimeSolver.linearSolver(obj.M,obj.interval.h.*obj.A*v+obj.rightSideVector(t),obj.tolerance,obj.maxIterations);
                     else
                         obj.rightSideVector=obj.interval.h.*obj.V;
-                        obj.iteratorRightHandSide=@(v,t) v+obj.interval.h.*obj.A*v+obj.rightSideVector;
+                        obj.iteratorRightHandSide=@(v,t) v+TimeSolver.linearSolver(obj.M,obj.interval.h.*obj.A*v+obj.rightSideVector,obj.tolerance,obj.maxIterations);
                     end                        
                     [u,t]=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
                 case {'improvedEuler','improved euler','improved Euler','Improved Euler'}%Not yet finnished
@@ -126,8 +126,8 @@ classdef TimeSolver < handle
                     end
                     obj.iteratorLeftHandSide=obj.M-(obj.interval.h/2).*obj.A;
                     if(VisFunctionHandle)
-                        obj.rightSideVector=@(t) obj.interval.h.*obj.V(t);
-                        obj.iteratorRightHandSide=@(v,t) v+(obj.interval.h/2).*obj.A*v+obj.rightSideVector(t);
+                        obj.rightSideVector=@(t) (obj.interval.h/2).*obj.V(t)+(obj.interval.h/2).*obj.V(t+obj.interval.h);
+                        obj.iteratorRightHandSide=@(v,t) v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector(t);
                     else
                         obj.rightSideVector=obj.interval.h.*obj.V;
                         obj.iteratorRightHandSide=@(v,t) v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector;
@@ -163,7 +163,7 @@ classdef TimeSolver < handle
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
                         if((mod(k-1,saveSolutionEveryTimeSteps))==0)
                             j=j+1;
-                            U(:,j)=obj.M\u(:,swap);
+                            U(:,j)=u(:,swap);
                         end
                         if(stoppingCondition(u(:,swap)))
                             if(j==0)
@@ -181,7 +181,7 @@ classdef TimeSolver < handle
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
                         if((mod(k-1,saveSolutionEveryTimeSteps))==0)
                             j=j+1;
-                            U(:,j)=obj.M\u(:,swap);
+                            U(:,j)=u(:,swap);
                         end
                     end
                 end
@@ -192,7 +192,7 @@ classdef TimeSolver < handle
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
                         if(stoppingCondition(u(:,swap)))
-                            U=obj.M\u(:,swap);
+                            U=u(:,swap);
                             return;
                         end
                     end
@@ -203,7 +203,7 @@ classdef TimeSolver < handle
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
                     end
                 end
-                U=obj.M\u(:,swap);
+                U=u(:,swap);
             end
         end
         
