@@ -16,7 +16,7 @@ success = true;
 neumannIdentifier = @(x) (x(1)>.5);
 mesh = FullMesh(triangles, points, neumannIdentifier);
 alpha = @(x) x(1)*0 +1;
-timeInterval = 0;
+timeInterval = TimeInterval(0,1,.01,10);
 u0 = @(x) x(1)*0 +0;
 gD = @(x,t) norm(x(:)'*[0;1],1) +1 +1*t^2;
 gN = @(x,t) norm(x(:)'*[1;1],1) +0 +0*t;
@@ -95,9 +95,13 @@ solver.neumannVector;
 solver.dirichletVector;
 
 % --- Check Reinsert Dirichlet Boundary ---
-uWithBoundary = solver.reinsertDirichletBoundary([2;3;5;7]);
-realuWithBoundary = [1;3;2;3;5;7];
-if(not(equalUpTo(uWithBoundary,realuWithBoundary,1e-6)))
+uRaw = zeros(4,11);
+for i= 1:11
+    uRaw(:,i) = [2;3;5;7];
+end
+uWithBoundary = solver.reinsertDirichletBoundary(uRaw);
+if (or(not(uWithBoundary(:,1)==[1,3,2,3,5,7]), ...
+    not(uWithBoundary(:,11)==[2,4,2,3,5,7])))
     disp('The Boundary is not inserted correctly afterward!')
     success=false; 
 end

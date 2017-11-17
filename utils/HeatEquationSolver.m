@@ -159,14 +159,26 @@ classdef HeatEquationSolver < handle
         
         function u = reinsertDirichletBoundary(obj, uNoBoundary)
             points = obj.mesh.points;
-            u = zeros(length(points),1);
+            timeSteps = fix((obj.timeInterval.t_max-obj.timeInterval.t_0) ...
+                /(obj.timeInterval.h*obj.timeInterval.n_to_plot))+1;
+            
+            if not(timeSteps == length(uNoBoundary(1,:)))
+                error('Our solution has the wrong size');
+            end
+            u = zeros(length(points),timeSteps);
             dirichletNodes = obj.mesh.dirichletBoundaryNodes;
             nonDirichletNodes = 1:length(points);
             nonDirichletNodes(dirichletNodes) = [];
-            u(nonDirichletNodes)=uNoBoundary;
-            for node = dirichletNodes
-                u(node) = obj.dirichletFunction(points(node,:),0);
+            u(nonDirichletNodes,:)=uNoBoundary;
+            t = obj.timeInterval.t_0;
+            for t_step=1:timeSteps
+                for node = dirichletNodes
+                    u(node,t_step) = obj.dirichletFunction(points(node,:),t);
+                end
+                t = obj.timeInterval.t_0 + t_step ...
+                    * obj.timeInterval.h * obj.timeInterval.n_to_plot;
             end
+            
         end
     end
 end
