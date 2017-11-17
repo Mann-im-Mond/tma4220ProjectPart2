@@ -21,10 +21,12 @@ classdef HeatEquationSolver
             obj.timeInterval = timeInterval;
             obj.alpha = alpha;
             obj.initialValues = initialValues;
-            obj.dirichletFunction = dirichletFunction;
-            % TODO we have to calculate this derivative function.
-            obj.derivedDirichletFunction = @(x) x(1)*0;
-            obj.neumannFunction = neumannFunction;
+            obj.dirichletFunction = @(x) dirichletFunction(x,0);
+            syms x t;
+            h = matlabFunction(diff(dirichletFunction, t),'vars', [x t]);
+            reset(symengine);
+            obj.derivedDirichletFunction = @(x) h(x,0);
+            obj.neumannFunction = @(x) neumannFunction(x,0);
         end
         
         function u = solve(obj)
@@ -125,8 +127,8 @@ classdef HeatEquationSolver
             dirichletDerivatives = zeros(length(points),1);
             for idx = dirichletNodes
                 coord = points(idx,:);
-                dirichletValues(idx) = obj.dirichletFunction(coord);
-                dirichletDerivatives(idx) = obj.derivedDirichletFunction(coord);
+                dirichletValues(idx) = obj.dirichletFunction(coord');
+                dirichletDerivatives(idx) = obj.derivedDirichletFunction(coord');
             end
             D = -A*dirichletValues + M*dirichletDerivatives;
         end
@@ -149,7 +151,7 @@ classdef HeatEquationSolver
             nonDirichletNodes(dirichletNodes) = [];
             u(nonDirichletNodes)=uNoBoundary;
             for node = dirichletNodes
-                u(node) = obj.dirichletFunction(points(node,:));
+                u(node) = obj.dirichletFunction(points(node,:)');
             end
         end
     end

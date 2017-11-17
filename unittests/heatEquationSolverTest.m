@@ -18,11 +18,11 @@ mesh = FullMesh(triangles, points, neumannIdentifier);
 alpha = @(x) x(1)*0 +1;
 timeInterval = 0;
 u0 = @(x) x(1)*0 +0;
-gD = @(x) x(2)*1 +1;
-gN = @(x) x(1)*1 + x(2)*1 +0;
+gD = @(x,t) norm(x'*sparse(1,2,1,1,2)',1) +1 +1*t^2;
+gN = @(x,t) x(1)*1 + x(2)*1 +0 +0*t;
 
 %to display the mesh uncommand the following
-triplot(triangles,points(:,1),points(:,2));
+%triplot(triangles,points(:,1),points(:,2));
 
 solver = HeatEquationSolver(mesh,timeInterval,alpha,u0,gD,gN);
 
