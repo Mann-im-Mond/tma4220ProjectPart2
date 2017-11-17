@@ -38,7 +38,7 @@ classdef HeatEquationSolver < handle
             interval = obj.timeInterval;
             u_0 = obj.initialValues;
             timeSolver = TimeSolver(u_0,interval,M,A,V);
-            uRaw = timeSolver.solve('safeOutputEvery',interval.n_to_plot);
+            uRaw = timeSolver.solve('saveOutputEvery',interval.n_to_plot);
             u = obj.reinsertDirichletBoundary(uRaw);
         end 
     end
