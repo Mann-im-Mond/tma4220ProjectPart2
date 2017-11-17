@@ -52,12 +52,18 @@ classdef TimeSolver < handle
             stoppingConditionIsSet= false;
             saveSolutionEveryTimeSteps=obj.interval.getNumberOfSteps();
             saveSolutionEveryTimeStepsIsSet= false;
+            skipNextLoop=false;
             for j=1:length(varargin)
+                if(skipNextLoop)
+                    skipNextLoop=false;
+                    continue
+                end
                 switch varargin{j}
                     case 'method'
                         if j<length(varargin)
                             method=varargin{j+1};
                         end
+                        skipNextLoop=true;
                     case 'stoppingCondition'
                         if j<length(varargin)
                             if(isa(varargin{j+1},'function_handle'))
@@ -65,6 +71,7 @@ classdef TimeSolver < handle
                                 stoppingConditionIsSet=true;
                             end
                         end
+                        skipNextLoop=true;
                     case 'safeSolutionEvery'
                         if j<length(varargin)
                             if(isa(varargin{j+1},'double'))
@@ -72,7 +79,7 @@ classdef TimeSolver < handle
                                 saveSolutionEveryTimeStepsIsSet=true;
                             end
                         end
-                        
+                        skipNextLoop=true;
                 end
             end
             switch method
@@ -127,7 +134,6 @@ classdef TimeSolver < handle
     end
         
     methods (Access=private)
-        
         function [U,t]=explicitMethod(obj,stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet)
             %initiate the interval
             K=obj.interval.getNumberOfSteps();
@@ -145,12 +151,16 @@ classdef TimeSolver < handle
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
-                        if(not(mod(k,saveSolutionEveryTimeSteps)))
+                        if((mod(k-1,saveSolutionEveryTimeSteps))==0)
                             j=j+1;
                             U(:,j)=obj.M\u(:,swap);
                         end
-                        if(stoppingCondition(u))
-                            U=U(:,j);
+                        if(stoppingCondition(u(:,swap)))
+                            if(j==0)
+                                U=u(:,swap);
+                            else
+                                U=U(:,j);
+                            end
                             return;
                         end
                     end
@@ -159,7 +169,7 @@ classdef TimeSolver < handle
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
-                        if(not(mod(k,saveSolutionEveryTimeSteps)))
+                        if((mod(k-1,saveSolutionEveryTimeSteps))==0)
                             j=j+1;
                             U(:,j)=obj.M\u(:,swap);
                         end
@@ -171,7 +181,7 @@ classdef TimeSolver < handle
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
-                        if(stoppingCondition(u))
+                        if(stoppingCondition(u(:,swap)))
                             U=obj.M\u(:,swap);
                             return;
                         end
@@ -204,7 +214,7 @@ classdef TimeSolver < handle
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t));
-                        if(not(mod(k,saveSolutionEveryTimeSteps)))
+                        if((mod(k-1,saveSolutionEveryTimeSteps))==0)
                             j=j+1;
                             U(:,j)=u(:,swap);
                         end
@@ -218,7 +228,7 @@ classdef TimeSolver < handle
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t));
-                        if(not(mod(k,saveSolutionEveryTimeSteps)))
+                        if((mod(k-1,saveSolutionEveryTimeSteps))==0)
                             j=j+1;
                             U(:,j)=u(:,swap);
                         end
