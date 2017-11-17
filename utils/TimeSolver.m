@@ -9,6 +9,11 @@ classdef TimeSolver < handle
 % A:        NxN Matrix
 % V:        N-dimensional Vektor or N-dimensional Functionhandle depending
 %           on t
+% tolerance:Accuricy of the iterative linear solve used in each step for
+%           explicit methods
+% maxIterations:
+%           Maximum number of steps for the iterative linear solve used in 
+%           each step for explicit methods
 % See also TimeInterval
 
     properties
@@ -17,6 +22,8 @@ classdef TimeSolver < handle
         M
         A
         V
+        tolerance
+        maxIterations
     end
     
     properties (Access=private)
@@ -32,9 +39,11 @@ classdef TimeSolver < handle
             obj.M=M;
             obj.A=A;
             obj.V=V;
+            obj.tolerance=10^(-3);
+            obj.maxIterations=10;
         end
             
-        function u = solve(obj,varargin)
+        function [u,t] = solve(obj,varargin)
             %Extend the time interval, so it consits only of time steps ...
             %with length h
             obj.interval.extendIntervalToEqualStepWidth();
@@ -72,7 +81,7 @@ classdef TimeSolver < handle
                             end
                         end
                         skipNextLoop=true;
-                    case 'safeSolutionEvery'
+                    case 'saveSolutionEvery'
                         if j<length(varargin)
                             if(isa(varargin{j+1},'double'))
                                 saveSolutionEveryTimeSteps=varargin{j+1};
@@ -91,16 +100,16 @@ classdef TimeSolver < handle
                         obj.rightSideVector=obj.interval.h.*obj.V;
                         obj.iteratorRightHandSide=@(v,t) v+obj.interval.h.*obj.A*v+obj.rightSideVector;
                     end                        
-                    u=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
+                    [u,t]=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
                 case {'improvedEuler','improved euler','improved Euler','Improved Euler'}%Not yet finnished
                     if(VisFunctionHandle)
                         obj.rightSideVector=@(t) (obj.interval.h/2).*(obj.V(t)+obj.V(t+obj.interval.h));
-                        obj.iteratorRightHandSide=@(v,t) v+obj.interval.h.*obj.A*v+((obj.interval.h)^2/2).*TimeSolver.linearSolver(obj.M,(obj.A*v+obj.V(t)))+obj.rightSideVector(t);
+                        obj.iteratorRightHandSide=@(v,t) v+obj.interval.h.*obj.A*v+((obj.interval.h)^2/2).*TimeSolver.linearSolver(obj.M,(obj.A*v+obj.V(t)),obj.tolerance,obj.maxIterations)+obj.rightSideVector(t);
                     else
                         obj.rightSideVector=obj.interval.h.*obj.V;
                         obj.iteratorRightHandSide=@(v,t) v+obj.interval.h.*obj.A*v+obj.rightSideVector;
                     end                        
-                    u=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
+                    [u,t]=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
                 case {'backwardsEuler','backwards euler','backwards Euler','Backwards Euler'}
                     obj.iteratorLeftHandSide=obj.M-obj.interval.h.*obj.A;
                     if(VisFunctionHandle)
@@ -110,7 +119,7 @@ classdef TimeSolver < handle
                         obj.rightSideVector=obj.interval.h.*obj.V;
                         obj.iteratorRightHandSide=@(v,t) v+obj.rightSideVector;
                     end                        
-                    u=obj.implicitOneStepMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
+                    [u,t]=obj.implicitOneStepMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
                 otherwise %Crank-Nicolson Method
                     if(not(ismember(method,{'','crankNicolson','Crank-Nicolson','crank-cicolson','Crank Nicolson','crank nicolson'})))
                         warning(['Method ',method,' not recognized, use Crank-Nicolson as fallback']);
@@ -123,13 +132,14 @@ classdef TimeSolver < handle
                         obj.rightSideVector=obj.interval.h.*obj.V;
                         obj.iteratorRightHandSide=@(v,t) v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector;
                     end                        
-                    u=obj.implicitOneStepMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
+                    [u,t]=obj.implicitOneStepMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
             end
         end
     end
     methods (Access=private,Static)
-        function u=linearSolver(A,b)
-            u=A\b;
+        function u=linearSolver(A,b,tol,maxIt)
+            L=ichol(A,struct('michol','on'));
+            [u,~,~,~,~]=pcg(A,b,tol,maxIt,L,L');
         end
     end
         
@@ -144,10 +154,10 @@ classdef TimeSolver < handle
             
             if(saveSolutionEveryTimeStepsIsSet)
                 %initialize return matrix
-                j=0;
-                U=zeros(length(u),floor(K/saveSolutionEveryTimeSteps));
+                j=1;
+                U=[obj.u_0,zeros(length(u),floor(K/saveSolutionEveryTimeSteps))];
                 if(stoppingConditionIsSet)
-                    for k = 2:K
+                    for k = 2:K+1
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
@@ -159,13 +169,13 @@ classdef TimeSolver < handle
                             if(j==0)
                                 U=u(:,swap);
                             else
-                                U=U(:,j);
+                                U=U(:,1:j);
                             end
                             return;
                         end
                     end
                 else
-                    for k = 2:K
+                    for k = 2:K+1
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
@@ -177,7 +187,7 @@ classdef TimeSolver < handle
                 end
             else
                 if(stoppingConditionIsSet)
-                    for k = 2:K
+                    for k = 2:K+1
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
@@ -187,7 +197,7 @@ classdef TimeSolver < handle
                         end
                     end
                 else
-                    for k = 2:K
+                    for k = 2:K+1
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
                         u(:,swap)=obj.iteratorRightHandSide(u(:,3-swap),t);
@@ -207,27 +217,27 @@ classdef TimeSolver < handle
             
             if(saveSolutionEveryTimeStepsIsSet)
                 %initialize return matrix
-                j=0;
-                U=zeros(length(u),floor(K/saveSolutionEveryTimeSteps));
+                j=1;
+                U=[obj.u_0,zeros(length(u),floor(K/saveSolutionEveryTimeSteps))];
                 if(stoppingConditionIsSet)
-                    for k = 2:K
+                    for k = 2:K+1
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
-                        u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t));
+                        u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t),obj.tolerance,obj.maxIterations);
                         if((mod(k-1,saveSolutionEveryTimeSteps))==0)
                             j=j+1;
                             U(:,j)=u(:,swap);
                         end
                         if(stoppingCondition(u))
-                            U=U(:,j);
+                            U=U(:,1:j);
                             return;
                         end
                     end
                 else
-                    for k = 2:K
+                    for k = 2:K+1
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
-                        u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t));
+                        u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t),obj.tolerance,obj.maxIterations);
                         if((mod(k-1,saveSolutionEveryTimeSteps))==0)
                             j=j+1;
                             U(:,j)=u(:,swap);
@@ -236,20 +246,20 @@ classdef TimeSolver < handle
                 end
             else
                 if(stoppingConditionIsSet)
-                    for k = 2:K
+                    for k = 2:K+1
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
-                        u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t));
+                        u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t),obj.tolerance,obj.maxIterations);
                         if(stoppingCondition(u))
                             U=u(:,swap);
                             return;
                         end
                     end
                 else
-                    for k = 2:K
+                    for k = 2:K+1
                         swap=3-swap;
                         t=obj.interval.descreteInterval(k);
-                        u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t));
+                        u(:,swap)=TimeSolver.linearSolver(obj.iteratorLeftHandSide,obj.iteratorRightHandSide(u(:,3-swap),t),obj.tolerance,obj.maxIterations);
                     end
                 end
                 U=u(:,swap);
