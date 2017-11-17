@@ -18,7 +18,7 @@ M=sparse(eye(dim));
 A=M;
 V=@(t) exp(t.*ones(dim,1));
 timeSolver=TimeSolver(u_0,timeInterval,M,A,V);
-u_exaxt=@(t) t.*exp(t);
+u_exact=@(t) t.*exp(t);
 
 for method={'Forward Euler','Improved Euler','Backwards Euler','Crank-Nicolson'}
     u=timeSolver.solve('method',method{1},'saveSolutionEvery',outputEverySteps,'stoppingCondition');
