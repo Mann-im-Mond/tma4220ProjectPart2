@@ -103,10 +103,10 @@ classdef TimeSolver < handle
                     [u,t]=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
                 case {'improvedEuler','improved euler','improved Euler','Improved Euler'}%Not yet finnished
                     if(VisFunctionHandle)
-                        obj.rightSideVector=@(t) (obj.interval.h/2).*(obj.V(t)+obj.V(t+obj.interval.h));
-                        obj.iteratorRightHandSide=@(v,t) v+obj.interval.h.*obj.A*v+((obj.interval.h)^2/2).*TimeSolver.linearSolver(obj.M,(obj.A*v+obj.V(t)),obj.tolerance,obj.maxIterations)+obj.rightSideVector(t);
+                        obj.rightSideVector=@(t) obj.V(t)+obj.V(t+obj.interval.h);
+                        obj.iteratorRightHandSide=@(v,t) v+(obj.interval.h/2).*TimeSolver.linearSolver(obj.M,2.*(obj.A*v)+obj.interval.h*(obj.A*TimeSolver.linearSolver(obj.M,(obj.A*v+obj.V(t)),obj.tolerance,obj.maxIterations))+obj.rightSideVector(t),obj.tolerance,obj.maxIterations);
                     else
-                        obj.rightSideVector=obj.interval.h.*obj.V;
+                        obj.rightSideVector=2.*obj.V;
                         obj.iteratorRightHandSide=@(v,t) v+obj.interval.h.*obj.A*v+obj.rightSideVector;
                     end                        
                     [u,t]=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
@@ -126,11 +126,11 @@ classdef TimeSolver < handle
                     end
                     obj.iteratorLeftHandSide=obj.M-(obj.interval.h/2).*obj.A;
                     if(VisFunctionHandle)
-                        obj.rightSideVector=@(t) (obj.interval.h/2).*obj.V(t)+(obj.interval.h/2).*obj.V(t+obj.interval.h);
-                        obj.iteratorRightHandSide=@(v,t) v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector(t);
+                        obj.rightSideVector=@(t) (obj.interval.h/2).*(obj.M*(obj.V(t)+obj.V(t+obj.interval.h)));
+                        obj.iteratorRightHandSide=@(v,t) obj.M*v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector(t);
                     else
-                        obj.rightSideVector=obj.interval.h.*obj.V;
-                        obj.iteratorRightHandSide=@(v,t) v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector;
+                        obj.rightSideVector=obj.interval.h.*(obj.M*obj.V);
+                        obj.iteratorRightHandSide=@(v,t) obj.M*v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector;
                     end                        
                     [u,t]=obj.implicitOneStepMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
             end
