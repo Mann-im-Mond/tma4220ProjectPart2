@@ -33,8 +33,8 @@ classdef HeatEquationSolver < handle
         function u = solve(obj)
             obj.initializeSystem();
             V = obj.getSummedVectors();
-            M = obj.stiffnessMatrix;
-            A = obj.odeMatrix;
+            A = obj.stiffnessMatrix;
+            M = obj.odeMatrix;
             interval = obj.timeInterval;
             u_0 = obj.initialValues;
             timeSolver = TimeSolver(u_0,interval,M,A,V);
@@ -127,33 +127,32 @@ classdef HeatEquationSolver < handle
             points = obj.mesh.points;
             N = zeros(length(points),1);
             neumannFaces = obj.mesh.neumannBoundaryFaces;
-            if isempty(neumannFaces)
-                return
-            end
-            
-            subdim = length(neumannFaces(1,:))-1;
-            basicTriangle = BasicTriangle(subdim);
-            quad = QuadratFunctionGenerator().getQuadratureFunction(subdim);
-            basicCorners = basicTriangle.getCornerPoints();
+    
+            if not(isempty(neumannFaces))
+                subdim = length(neumannFaces(1,:))-1;
+                basicTriangle = BasicTriangle(subdim);
+                quad = QuadratFunctionGenerator().getQuadratureFunction(subdim);
+                basicCorners = basicTriangle.getCornerPoints();
 
-            for face = neumannFaces'
-                corners = points(face',:);
-                triangle = Triangle(corners);
-                trafo = triangle.getTrafoFromBasis();
-                transformedNeumann = @(x) timeConstantNeumann(trafo(x));
-                volumeFace = triangle.getVolume();
-                volumeBasic = 1/(factorial(subdim));
-                quot = abs(volumeFace/volumeBasic);
-                alphafactor = obj.alpha(triangle.centerOfMass());
-                
-                % add the amound of the integral over this basis element
+                for face = neumannFaces'
+                    corners = points(face',:);
+                    triangle = Triangle(corners);
+                    trafo = triangle.getTrafoFromBasis();
+                    transformedNeumann = @(x) timeConstantNeumann(trafo(x));
+                    volumeFace = triangle.getVolume();
+                    volumeBasic = 1/(factorial(subdim));
+                    quot = abs(volumeFace/volumeBasic);
+                    alphafactor = obj.alpha(triangle.centerOfMass());
 
-                for i=1:(subdim+1)
-                    phi = basicTriangle.getBasisFunction(i);
-                    idx = face(i);
-                    N(idx) = N(idx) + ...
-                        quad(basicCorners,@(x) transformedNeumann(x).*...
-                        phi(x).*quot.*alphafactor);
+                    % add the amound of the integral over this basis element
+
+                    for i=1:(subdim+1)
+                        phi = basicTriangle.getBasisFunction(i);
+                        idx = face(i);
+                        N(idx) = N(idx) + ...
+                            quad(basicCorners,@(x) transformedNeumann(x).*...
+                            phi(x).*quot.*alphafactor);
+                    end
                 end
             end
             dirichletNodes = obj.mesh.dirichletBoundaryNodes;
