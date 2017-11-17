@@ -38,7 +38,7 @@ classdef HeatEquationSolver < handle
             interval = obj.timeInterval;
             u_0 = obj.initialValues;
             timeSolver = TimeSolver(u_0,interval,M,A,V);
-            uRaw = timeSolver.solve('saveOutputEvery',interval.n_to_plot);
+            uRaw = timeSolver.solve('saveSolutionEvery',interval.n_to_plot);
             u = obj.reinsertDirichletBoundary(uRaw);
         end 
     end
@@ -87,7 +87,7 @@ classdef HeatEquationSolver < handle
             dim = obj.mesh.dim();
             triangles = obj.mesh.triangulation;
             points = obj.mesh.points;
-            A = zeros(length(points));
+            A = spalloc(length(points),length(points),length(points)^2);
             basicTriangle = BasicTriangle(dim);
             B = basicTriangle.getPDEOfbasisFunction();                      % matrix of partial differential equations
 
@@ -107,7 +107,7 @@ classdef HeatEquationSolver < handle
             dim = obj.mesh.dim();
             triangles = obj.mesh.triangulation;
             points = obj.mesh.points;
-            M = zeros(length(points));
+            M = spalloc(length(points),length(points),length(points)^2);
             basicTriangle = BasicTriangle(dim);
             
             productIntegrals = basicTriangle.productBasisFunctionIntegralMatrix();
