@@ -95,10 +95,10 @@ classdef TimeSolver < handle
                 case {'euler','forwardEuler','Euler','forward euler','forward Euler','Forward Euler'}
                     if(VisFunctionHandle)
                         obj.rightSideVector=@(t) obj.interval.h.*obj.V(t);
-                        obj.iteratorRightHandSide=@(v,t) v+TimeSolver.linearSolver(obj.M,obj.interval.h.*obj.A*v+obj.rightSideVector(t),obj.tolerance,obj.maxIterations);
+                        obj.iteratorRightHandSide=@(v,t) v+TimeSolver.linearSolver(obj.M,obj.interval.h.*(obj.A*v)+obj.rightSideVector(t),obj.tolerance,obj.maxIterations);
                     else
                         obj.rightSideVector=obj.interval.h.*obj.V;
-                        obj.iteratorRightHandSide=@(v,t) v+TimeSolver.linearSolver(obj.M,obj.interval.h.*obj.A*v+obj.rightSideVector,obj.tolerance,obj.maxIterations);
+                        obj.iteratorRightHandSide=@(v,t) v+TimeSolver.linearSolver(obj.M,obj.interval.h.*(obj.A*v)+obj.rightSideVector,obj.tolerance,obj.maxIterations);
                     end                        
                     [u,t]=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
                 case {'improvedEuler','improved euler','improved Euler','Improved Euler'}%Not yet finnished
@@ -114,10 +114,10 @@ classdef TimeSolver < handle
                     obj.iteratorLeftHandSide=obj.M-obj.interval.h.*obj.A;
                     if(VisFunctionHandle)
                         obj.rightSideVector=@(t) obj.interval.h.*obj.V(t);
-                        obj.iteratorRightHandSide=@(v,t) v+obj.rightSideVector(t);
+                        obj.iteratorRightHandSide=@(v,t) obj.M*v+obj.rightSideVector(t+h);
                     else
                         obj.rightSideVector=obj.interval.h.*obj.V;
-                        obj.iteratorRightHandSide=@(v,t) v+obj.rightSideVector;
+                        obj.iteratorRightHandSide=@(v,t) obj.M*v+obj.rightSideVector;
                     end                        
                     [u,t]=obj.implicitOneStepMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
                 otherwise %Crank-Nicolson Method
@@ -126,10 +126,10 @@ classdef TimeSolver < handle
                     end
                     obj.iteratorLeftHandSide=obj.M-(obj.interval.h/2).*obj.A;
                     if(VisFunctionHandle)
-                        obj.rightSideVector=@(t) (obj.interval.h/2).*(obj.M*(obj.V(t)+obj.V(t+obj.interval.h)));
+                        obj.rightSideVector=@(t) (obj.interval.h/2).*(obj.V(t)+obj.V(t+obj.interval.h));
                         obj.iteratorRightHandSide=@(v,t) obj.M*v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector(t);
                     else
-                        obj.rightSideVector=obj.interval.h.*(obj.M*obj.V);
+                        obj.rightSideVector=obj.interval.h.*obj.V;
                         obj.iteratorRightHandSide=@(v,t) obj.M*v+(obj.interval.h/2).*(obj.A*v)+obj.rightSideVector;
                     end                        
                     [u,t]=obj.implicitOneStepMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
@@ -138,7 +138,7 @@ classdef TimeSolver < handle
     end
     methods (Access=private,Static)
         function u=linearSolver(A,b,tol,maxIt)
-            L=ichol(A,struct('michol','on'));
+            L=ichol(A,struct('type','ict','michol','on'));
             [u,~,~,~,~]=pcg(A,b,tol,maxIt,L,L');
         end
     end
