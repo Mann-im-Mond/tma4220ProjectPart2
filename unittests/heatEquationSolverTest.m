@@ -18,8 +18,8 @@ mesh = FullMesh(triangles, points, neumannIdentifier);
 alpha = @(x) x(1)*0 +1;
 timeInterval = 0;
 u0 = @(x) x(1)*0 +0;
-gD = @(x,t) norm(x'*sparse(1,2,1,1,2)',1) +1 +1*t^2;
-gN = @(x,t) x(1)*1 + x(2)*1 +0 +0*t;
+gD = @(x,t) norm(x(:)'*[0;1],1) +1 +1*t^2;
+gN = @(x,t) norm(x(:)'*[1;1],1) +0 +0*t;
 
 %to display the mesh uncommand the following
 %triplot(triangles,points(:,1),points(:,2));
@@ -69,16 +69,17 @@ if(not(equalUpTo(odeMatrix,realODEMatrix,1e-6)))
 end
 
 % --- Check Neumann Vector ---
-neumannVector = solver.getNeumannVector();
-realNeumannVector = [0;0;0;0;4/3;5/3];
+neumannVector = solver.getNeumannVector(@(x) solver.neumannFunction(x,0));
+realNeumannVector = [0;0;4/3;5/3];
 if(not(equalUpTo(neumannVector,realNeumannVector,1e-6)))
     disp('The Neumann Vector is not calculated correctly!')
     success=false; 
 end
 
 % --- Check Dirichlet Vector ---
-dirichletVector = solver.getDirichletVector();
-realDirichletVector = [-1;-3;4;0;0;0];
+dirichletVector = solver.getDirichletVector(@(x) solver.dirichletFunction(x,0), ...
+@(x) solver.derivedDirichletFunction(x,0));
+realDirichletVector = [4;0;0;0];
 if(not(equalUpTo(dirichletVector,realDirichletVector,1e-6)))
     disp('The Dirichlet Vector is not calculated correctly!')
     success=false; 
@@ -87,7 +88,7 @@ end
 % --- Check Remove Dirichlet Boundary ---
 % I decided not to check this, as the chek would look the same, as the
 % function.
-solver = solver.initializeSystem();
+solver.initializeSystem();
 solver.stiffnessMatrix;
 solver.odeMatrix;
 solver.neumannVector;

@@ -1,4 +1,4 @@
-classdef HeatEquationSolver
+classdef HeatEquationSolver < handle
    
     properties
         mesh
@@ -21,12 +21,12 @@ classdef HeatEquationSolver
             obj.timeInterval = timeInterval;
             obj.alpha = alpha;
             obj.initialValues = initialValues;
-            obj.dirichletFunction = @(x) dirichletFunction(x,0);
+            obj.dirichletFunction = dirichletFunction;
             syms x t;
             h = matlabFunction(diff(dirichletFunction, t),'vars', [x t]);
             reset(symengine);
-            obj.derivedDirichletFunction = @(x) h(x,0);
-            obj.neumannFunction = @(x) neumannFunction(x,0);
+            obj.derivedDirichletFunction = h;
+            obj.neumannFunction = neumannFunction;
         end
         
         function u = solve(obj)
@@ -35,12 +35,24 @@ classdef HeatEquationSolver
     end
     
     methods
-        function  obj = initializeSystem(obj)
+        function  initializeSystem(obj)
             obj.stiffnessMatrix = obj.getStiffnessMatrix();
             obj.odeMatrix = obj.getODEMatrix();
-            obj.neumannVector = obj.getNeumannVector();
-            obj.dirichletVector = obj.getDirichletVector();
-            obj = obj.removeDirichletBoundary();
+            syms x t;
+            if(diff(obj.neumannFunction, t) == 0)
+                obj.neumannVector = obj.getNeumannVector(@(x) obj.neumannFunction(x,0));
+            else
+                obj.neumannVector = @(t) obj.getNeumannVector(@(x) obj.neumannFunction(x,t));
+            end
+            if(diff(obj.dirichletFunction, t) == 0)
+                obj.dirichletVector = obj.dirichletVector(@(x) obj.dirichletFunction(x,0), ...
+                    @(x) obj.derivedDirichletFunction(x,0));
+            else
+                obj.dirichletVector = @(t) obj.dirichletVector(@(x) obj.dirichletFunction(x,t), ...
+                    @(x) obj.derivedDirichletFunction(x,t));
+            end
+            reset(symengine);
+            obj.removeDirichletBoundaryFromMatrices();
         end
         
         function A = getStiffnessMatrix(obj)
@@ -83,7 +95,7 @@ classdef HeatEquationSolver
             end
         end
         
-        function N = getNeumannVector(obj)
+        function N = getNeumannVector(obj, timeConstantNeumann)
             points = obj.mesh.points;
             N = zeros(length(points),1);
             neumannFaces = obj.mesh.neumannBoundaryFaces;
@@ -100,7 +112,7 @@ classdef HeatEquationSolver
                 corners = points(face',:);
                 triangle = Triangle(corners);
                 trafo = triangle.getTrafoFromBasis();
-                transformedNeumann = @(x) obj.neumannFunction(trafo(x));
+                transformedNeumann = @(x) timeConstantNeumann(trafo(x));
                 volumeFace = triangle.getVolume();
                 volumeBasic = 1/(factorial(subdim));
                 quot = abs(volumeFace/volumeBasic);
@@ -116,9 +128,11 @@ classdef HeatEquationSolver
                         phi(x).*quot.*alphafactor);
                 end
             end
+            dirichletNodes = obj.mesh.dirichletBoundaryNodes;
+            N(dirichletNodes)       = [];
         end
         
-        function D = getDirichletVector(obj)
+        function D = getDirichletVector(obj, timeConstantDirichlet, timeConstantDerivative)
             A = obj.getStiffnessMatrix();
             M = obj.getODEMatrix();
             points = obj.mesh.points;
@@ -127,20 +141,20 @@ classdef HeatEquationSolver
             dirichletDerivatives = zeros(length(points),1);
             for idx = dirichletNodes
                 coord = points(idx,:);
-                dirichletValues(idx) = obj.dirichletFunction(coord');
-                dirichletDerivatives(idx) = obj.derivedDirichletFunction(coord');
+                dirichletValues(idx) = timeConstantDirichlet(coord');
+                dirichletDerivatives(idx) = timeConstantDerivative(coord');
             end
             D = -A*dirichletValues + M*dirichletDerivatives;
+            dirichletNodes = obj.mesh.dirichletBoundaryNodes;
+            D(dirichletNodes)     = [];
         end
         
-        function obj = removeDirichletBoundary(obj)
+        function removeDirichletBoundaryFromMatrices(obj)
             dirichletNodes = obj.mesh.dirichletBoundaryNodes;
             obj.stiffnessMatrix(dirichletNodes,:)   = [];
             obj.stiffnessMatrix(:,dirichletNodes)   = [];
             obj.odeMatrix(dirichletNodes,:)         = [];
             obj.odeMatrix(:,dirichletNodes)         = [];
-            obj.neumannVector(dirichletNodes)       = [];
-            obj.dirichletVector(dirichletNodes)     = [];
         end
         
         function u = reinsertDirichletBoundary(obj, uNoBoundary)
@@ -151,7 +165,7 @@ classdef HeatEquationSolver
             nonDirichletNodes(dirichletNodes) = [];
             u(nonDirichletNodes)=uNoBoundary;
             for node = dirichletNodes
-                u(node) = obj.dirichletFunction(points(node,:)');
+                u(node) = obj.dirichletFunction(points(node,:),0);
             end
         end
     end
