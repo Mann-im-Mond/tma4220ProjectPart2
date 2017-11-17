@@ -95,10 +95,10 @@ classdef TimeSolver < handle
                 case {'euler','forwardEuler','Euler','forward euler','forward Euler','Forward Euler'}
                     if(VisFunctionHandle)
                         obj.rightSideVector=@(t) obj.interval.h.*obj.V(t);
-                        obj.iteratorRightHandSide=@(v,t) v+linearSolver(obj.M,obj.interval.h.*obj.A*v+obj.rightSideVector(t));
+                        obj.iteratorRightHandSide=@(v,t) v+TimeSolver.linearSolver(obj.M,obj.interval.h.*obj.A*v+obj.rightSideVector(t),obj.tolerance,obj.maxIterations);
                     else
                         obj.rightSideVector=obj.interval.h.*obj.V;
-                        obj.iteratorRightHandSide=@(v,t) v+linearSolver(obj.M,obj.interval.h.*obj.A*v+obj.rightSideVector);
+                        obj.iteratorRightHandSide=@(v,t) v+TimeSolver.linearSolver(obj.M,obj.interval.h.*obj.A*v+obj.rightSideVector,obj.tolerance,obj.maxIterations);
                     end                        
                     [u,t]=obj.explicitMethod(stoppingConditionIsSet,stoppingCondition,saveSolutionEveryTimeSteps,saveSolutionEveryTimeStepsIsSet);
                 case {'improvedEuler','improved euler','improved Euler','Improved Euler'}%Not yet finnished
