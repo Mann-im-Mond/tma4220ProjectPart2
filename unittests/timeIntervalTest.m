@@ -5,7 +5,8 @@ addpath('../helperFunctions')
 t_0=0;
 t_max=20;
 h=6;
-timeInterval=TimeInterval(t_0,t_max,h);
+n_to_plot = 0;
+timeInterval=TimeInterval(t_0,t_max,h,n_to_plot);
 
 success = true;
 

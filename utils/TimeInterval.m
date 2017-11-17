@@ -10,14 +10,16 @@ classdef TimeInterval < handle
         t_0
         t_max
         h
+        n_to_plot
         descreteInterval
     end
     
     methods
-        function obj=TimeInterval(t_0,t_max,h)
+        function obj=TimeInterval(t_0,t_max,h,n_to_plot)
             obj.t_0=t_0;
             obj.t_max=t_max;
             obj.h=h;
+            obj.n_to_plot = n_to_plot;
             obj.setDescreteInterval();
         end
         function N = getNumberOfSteps(obj)
