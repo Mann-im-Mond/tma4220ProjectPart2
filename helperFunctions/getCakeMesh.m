@@ -12,7 +12,7 @@ function mesh = getCakeMesh(folder, neumannIdentifier, radius)
     s=textscan(fid,'%f %f %f %f');
     fclose(fid);
     pts = [s{2},s{3},s{4}];
-    pts = pts*(radius/0.5);
+    pts = pts*(radius);
     
     mesh = FullMesh(tetr,pts,neumannIdentifier);
 end
