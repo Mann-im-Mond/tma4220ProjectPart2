@@ -114,7 +114,7 @@ classdef TimeSolver < handle
                     obj.iteratorLeftHandSide=obj.M-obj.interval.h.*obj.A;
                     if(VisFunctionHandle)
                         obj.rightSideVector=@(t) obj.interval.h.*obj.V(t);
-                        obj.iteratorRightHandSide=@(v,t) obj.M*v+obj.rightSideVector(t+h);
+                        obj.iteratorRightHandSide=@(v,t) obj.M*v+obj.rightSideVector(t+obj.interval.h);
                     else
                         obj.rightSideVector=obj.interval.h.*obj.V;
                         obj.iteratorRightHandSide=@(v,t) obj.M*v+obj.rightSideVector;
