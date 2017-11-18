@@ -1,17 +1,18 @@
-function mesh = getCakeMesh(folder, neumannIdentifier)
+function mesh = getCakeMesh(folder, neumannIdentifier, radius)
     addpath('../utils/')
     
-    tetrFile = join([folder '/cake_tetr.m'])
+    tetrFile = join([folder '/cake_tetr.m']);
     fid=fopen(tetrFile);
     s=textscan(fid,'%f %f %f %f %f %f');
     fclose(fid);
     tetr = [s{1},s{2},s{3},s{4}];
     
-    ptsFile = join([folder '/cake_nodes.m'])
+    ptsFile = join([folder '/cake_nodes.m']);
     fid=fopen(ptsFile);
     s=textscan(fid,'%f %f %f %f');
     fclose(fid);
     pts = [s{2},s{3},s{4}];
+    pts = pts*(radius/0.5);
     
     mesh = FullMesh(tetr,pts,neumannIdentifier);
 end
