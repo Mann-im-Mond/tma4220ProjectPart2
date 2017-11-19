@@ -171,7 +171,7 @@ classdef HeatEquationSolver < handle
                 dirichletValues(idx) = timeConstantDirichlet(coord');
                 dirichletDerivatives(idx) = timeConstantDerivative(coord');
             end
-            D = -A*dirichletValues + M*dirichletDerivatives;
+            D = -A*dirichletValues - M*dirichletDerivatives;
             dirichletNodes = obj.mesh.dirichletBoundaryNodes;
             D(dirichletNodes)     = [];
         end
