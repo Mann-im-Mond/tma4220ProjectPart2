@@ -3,10 +3,11 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage{pdfpages}
-\usepackage{hyperref}
+%\usepackage{hyperref}
 \usepackage{pdflscape}
 \usepackage{amsmath, amssymb}
 \usepackage{enumitem}
+\usepackage{cite}
 
 \setenumerate{itemsep=0pt, topsep=5pt, parsep=0pt}
 \setitemize{itemsep=0pt, topsep=5pt, parsep=0pt}
@@ -21,4 +22,7 @@
 \maketitle
 \input{problem.tex}
 \input{setupSystem.tex}
+
+\bibliographystyle{alpha}
+\bibliography{bibliography}{}
 \end{document}

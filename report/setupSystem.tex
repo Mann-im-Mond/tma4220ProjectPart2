@@ -1,4 +1,91 @@
 % !TeX spellcheck = en_GB 
 
 \section{\label{sec::setupSystem}Setting up the System}
-In this section we find a relaxation of the problem stated in section \ref{sec::problem}. To do so we introduce a triangulation of the area $\Omega$, which we will call $\Omega^d$.
+In this section we find a relaxation of the problem stated in section \ref{sec::problem}. To do so we first find a weak formulation of it. Multiplying both sides of (\ref{eqn::strongForm}) with an arbitrary test function $v\in V:=H^1(\Omega)$ and integrating over the domain, we get:
+\begin{equation*}
+	\int_{\Omega} \frac{\partial u}{\partial t} v = \int_{\Omega} (\nabla(\alpha\nabla u)) v
+\end{equation*}
+Integrating the right hand side by parts will result in:
+\begin{equation*}
+	\int_{\Omega} \frac{\partial u}{\partial t} v = -\int_{\Omega} \alpha(\nabla u) \cdot (\nabla v) + \int_{\partial \Omega} \alpha v (\nabla u) \cdot \nu\\
+\end{equation*}
+Using
+\begin{equation*}
+	(\nabla u)\cdot \nu = \frac{\partial u}{\partial \nu} = g
+\end{equation*}
+leads to:
+\begin{equation}
+	\label{eqn::weakForm}
+	\int_{\Omega} \frac{\partial u}{\partial t} v = -\int_{\Omega} \alpha(\nabla u) \cdot (\nabla v) +  \int_{\partial\Omega^N} \alpha gv + \int_{\partial \Omega^D} \alpha v (\nabla u) \cdot \nu\\
+\end{equation}
+To solve the weak formulation (\ref{eqn::weakForm}) numerically we discretise our domain $\Omega$. Our notation will follow \cite{quarteroni2009numerical}. Also we will not state every step in detail, if you wish, to get deeper insights in the theory behind it, we also recommend reading \cite{quarteroni2009numerical}.
+
+Let $\mathcal{T}_h$ be a set of non overlapping tetrahedrons covering $\Omega$ with and $\mathcal{N}={N_1,\dots N_{n_h}}$ the nodes of this mesh. As the theory about this is not new, and not closely related, to our problem, we don't want to go into detail about this. The approximated domain is then $\Omega_h:=\bigcup_{K\in\mathcal{T}_h}K$.
+
+As an approximation of the functions in $V$, we now search for functions in $X_h:=\{v_h\in C^0(\overline{\Omega}_h) : v_h|_K \text{ linear } \forall K\in \mathcal{T}_h\}$, which are the continuous functions on $\Omega_h$, that are piecewise linear on each tetrahedron.
+
+A basis for this space is given by the characteristic Lagrangian functions $\phi_j\in\ X_h, j=1,\dots n_h$, with $\phi_j(N_i) = \delta_{ij}$. So we can write every $v_h\in X_h$ in the following way:
+\begin{equation*}
+	v_h(x) = \sum_{j=1}^{j=n_h}v_j\phi_j.
+\end{equation*}
+
+On this space equation (\ref{eqn::weakForm}) is equivalent to the following, as $v$:
+\begin{equation}
+\label{eqn::discreticedWeakForm}
+\begin{aligned}
+	\int_{\Omega} \sum_i \frac{\partial u_i}{\partial t} \phi_i \phi_j = &-\int_{\Omega} \sum_i \alpha u_i(\nabla \phi_i) \cdot (\nabla \phi_j) \\
+	&+ \int_{\partial\Omega^N} \alpha g\phi_j \\
+	&+ \int_{\partial\Omega^D} \sum_i \alpha u_i (\nabla \phi_i) \cdot \nu \phi_j & \forall j.
+\end{aligned}
+\end{equation}
+
+Having homogeneous Dirichlet conditions (i.e. $u^D=0$), we only have to search on the subspace $V_h:=\mathring{X}_h:=\{v_h\in X_h : v_h|_{\partial\Omega_h^D} = 0\}$. Let wlog be the last indices $n_D,\dots n_h$, the indices of the nodes on the Dirichlet boundary. As $v_h\in V_h$ leads to $v_j = 0, \forall j\geq n_D$, (\ref{eqn::discreticedWeakForm}) becomes:
+\begin{equation}
+\label{eqn::homogeneousForm}
+\begin{aligned}
+	\int_{\Omega} \sum_i \frac{\partial u_i}{\partial t} \phi_i \phi_j = &-\int_{\Omega} \sum_i \alpha u_i(\nabla \phi_i) \cdot (\nabla \phi_j) \\
+	&+ \int_{\partial\Omega^N} \alpha g\phi_j
+	 & \forall j < n_D.
+\end{aligned}
+\end{equation}
+
+We can reduce the non-homogeneous case to the homogeneous one, by introducing a lifting $R_g\in X_h$ as follows:
+\begin{equation*}
+	R_g(x) := \sum_{i=n_D}^{n_h}d_i \phi_i(x),
+\end{equation*}
+where $d_i:=u^D(N_i)$. With the homogeneous solution
+\begin{equation*}
+	\mathring{u} := \sum_{i=1}^{n_D-1}u_i \phi_i(x),
+\end{equation*}
+the final solution is given by
+\begin{equation}
+	\label{eqn::fullu}
+	u = \mathring{u} + R_g.
+\end{equation}
+
+
+To find this homogeneous solution, we insert (\ref{eqn::fullu}) in (\ref{eqn::homogeneousForm}) and get:
+\begin{equation}
+\label{eqn::finalDiscreticedForm}
+\begin{aligned}
+	\int_{\Omega} \sum_{i=1}^{n_D-1} \frac{\partial u_i}{\partial t} \phi_i \phi_j = &-\int_{\Omega} \sum_{i=1}^{n_D-1} \alpha u_i(\nabla \phi_i) \cdot (\nabla \phi_j) \\
+	&+ \int_{\partial\Omega^N} \alpha g\phi_j \\
+	&-	\int_{\Omega} \sum_{i=n_D}^{n_h}\left( \dot{d}_i \phi_i \phi_j  + d_i(\nabla \phi_i) \cdot (\nabla \phi_j)\right)
+	 & \forall j,
+\end{aligned}
+\end{equation}
+with $\dot{d}_i:=\frac{\partial u^D}{\partial t}(N_i)$.
+
+We now define the matrices $M$, $A$ and the vectors $N$, $D$ by:
+\begin{align*}
+	M_{ij} &:=\int_{\Omega} \phi_i \phi_j \\
+	A_{ij} &:=\int_{\Omega} \alpha (\nabla \phi_i) \cdot (\nabla \phi_j) \\
+	N_{j} &:=\int_{\partial\Omega^N} \alpha g\phi_j \\
+	D_{j} &:=\int_{\Omega} \sum_{k=n_D}^{n_h}\left( \dot{d}_k \phi_k \phi_j  + d_k(\nabla \phi_k) \cdot (\nabla \phi_j)\right),
+\end{align*}
+with $i,j=1,\dots (n_D-1)$. Using these we get the the differential equation:
+\begin{equation}
+	\label{eqn::matrixForm}
+	M\frac{\partial u}{\partial t} = -A u + N - D.
+\end{equation}
+We will later see how to solve this.

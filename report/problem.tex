@@ -3,7 +3,7 @@
 \section{\label{sec::problem}Problem}
 The theoretical problem we want to solve is the heat equation, which is given by:
 \begin{align}
-	\frac{\partial u}{\partial t} &= \nabla(\alpha\nabla u)\\
+	\frac{\partial u}{\partial t} &= \nabla(\alpha\nabla u) \label{eqn::strongForm}\\
 	u(\vec{x},t)|_{\partial\Omega^D} &= u^D\\
 	\left.\left( \frac{\partial u(\vec{x},t)}{\partial \nu}\right)\right|_{\partial\Omega^N} &= g\\
 	u(\vec{x},t)|_{t=0} &=u_0(\vec{x})
