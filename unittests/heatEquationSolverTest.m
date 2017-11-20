@@ -1,6 +1,7 @@
 path(pathdef)
 addpath('../utils/')
 addpath('../helperFunctions/')
+
 %{
 Work with the following easy mesh.
  (0,2)  ___________ (2,2) 
@@ -24,8 +25,8 @@ gN = @(x,t) norm(x(:)'*[1;1],1) +0 +0*t;
 %to display the mesh uncommand the following
 %triplot(triangles,points(:,1),points(:,2));
 
-solver = HeatEquationSolver(mesh,timeInterval,alpha,u0,gD,gN);
-solver.initializeSystem();
+solver = HeatEquationSolver(mesh,timeInterval,alpha,u0,gD,gN,@(x)false);
+evalc('solver.initializeSystem();');
 
 
 % --- Check Stiffness Matrix ---

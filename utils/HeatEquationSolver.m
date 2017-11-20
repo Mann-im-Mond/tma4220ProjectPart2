@@ -8,6 +8,7 @@ classdef HeatEquationSolver < handle
         dirichletFunction
         derivedDirichletFunction
         neumannFunction
+        stoppingCondition
         
         stiffnessMatrix
         odeMatrix
@@ -19,7 +20,7 @@ classdef HeatEquationSolver < handle
     end
     
     methods
-        function obj = HeatEquationSolver(mesh,timeInterval,alpha,initialValueFunction,dirichletFunction,neumannFunction)
+        function obj = HeatEquationSolver(mesh,timeInterval,alpha,initialValueFunction,dirichletFunction,neumannFunction,stoppingCondition)
             obj.mesh = mesh;
             obj.timeInterval = timeInterval;
             obj.alpha = alpha;
@@ -30,6 +31,7 @@ classdef HeatEquationSolver < handle
             reset(symengine);
             obj.derivedDirichletFunction = h;
             obj.neumannFunction = neumannFunction;
+            obj.stoppingCondition = stoppingCondition;
         end
         
         function u = solve(obj)
@@ -41,7 +43,7 @@ classdef HeatEquationSolver < handle
             u_0 = obj.initialValues;
             timeSolver = TimeSolver(u_0,interval,M,-A,V);
             disp('starting time solver.')
-            uRaw = timeSolver.solve('method','crankNicolson','saveSolutionEvery',interval.n_to_plot);
+            uRaw = timeSolver.solve('method','crankNicolson','stoppingCondition',obj.stoppingCondition,'saveSolutionEvery',interval.n_to_plot);
             u = obj.reinsertDirichletBoundary(uRaw);
         end 
     end
