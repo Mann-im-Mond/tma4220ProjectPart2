@@ -70,7 +70,7 @@ To find this homogeneous solution, we insert (\ref{eqn::fullu}) in (\ref{eqn::ho
 \begin{aligned}
 	\int_{\Omega} \sum_{i=1}^{n_D-1} \frac{\partial u_i}{\partial t} \phi_i \phi_j = &-\int_{\Omega} \sum_{i=1}^{n_D-1} \alpha u_i(\nabla \phi_i) \cdot (\nabla \phi_j) \\
 	&+ \int_{\partial\Omega^N} \alpha g\phi_j \\
-	&-	\int_{\Omega} \sum_{i=n_D}^{n_h}\left( \dot{d}_i \phi_i \phi_j  + d_i(\nabla \phi_i) \cdot (\nabla \phi_j)\right)
+	&-	\int_{\Omega} \sum_{i=n_D}^{n_h}\left( \dot{d}_i \phi_i \phi_j  + \alpha d_i(\nabla \phi_i) \cdot (\nabla \phi_j)\right)
 	 & \forall j,
 \end{aligned}
 \end{equation}
@@ -81,7 +81,7 @@ We now define the matrices $M$, $A$ and the vectors $N$, $D$ by:
 	M_{ij} &:=\int_{\Omega} \phi_i \phi_j \\
 	A_{ij} &:=\int_{\Omega} \alpha (\nabla \phi_i) \cdot (\nabla \phi_j) \\
 	N_{j} &:=\int_{\partial\Omega^N} \alpha g\phi_j \\
-	D_{j} &:=\int_{\Omega} \sum_{k=n_D}^{n_h}\left( \dot{d}_k \phi_k \phi_j  + d_k(\nabla \phi_k) \cdot (\nabla \phi_j)\right),
+	D_{j} &:=\int_{\Omega} \sum_{k=n_D}^{n_h}\left( \dot{d}_k \phi_k \phi_j  + \alpha d_k(\nabla \phi_k) \cdot (\nabla \phi_j)\right),
 \end{align*}
 with $i,j=1,\dots (n_D-1)$. Using these we get the the differential equation:
 \begin{equation}
