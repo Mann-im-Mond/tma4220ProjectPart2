@@ -6,6 +6,8 @@ function mesh = getCakeMesh(folder, neumannIdentifier, radius)
     s=textscan(fid,'%f %f %f %f %f %f');
     fclose(fid);
     tetr = [s{1},s{2},s{3},s{4}];
+    rod = [s{5}];
+
     
     ptsFile = [folder '/cake_nodes.m'];
     fid=fopen(ptsFile);
@@ -14,6 +16,6 @@ function mesh = getCakeMesh(folder, neumannIdentifier, radius)
     pts = [s{2},s{3},s{4}];
     pts = pts*(radius);
     
-    mesh = FullMesh(tetr,pts,neumannIdentifier);
+    mesh = FullMesh(tetr,pts,rod,neumannIdentifier);
 end
 

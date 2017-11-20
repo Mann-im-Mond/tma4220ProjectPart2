@@ -3,18 +3,24 @@ classdef FullMesh
   properties
     neumannBoundaryFaces
     dirichletBoundaryNodes
+    allBoundaryNodes
     triangulation
     points
+    rod
+    neumannFaceRod
   end
   
   methods
     %tri_in is a list of triangles, where the points are given by the index
     % of the point in the list of points p_in
-    function obj = FullMesh(tri_in,p_in,neumannIdentifier)
+    function obj = FullMesh(tri_in,p_in,rod,neumannIdentifier)
       obj.triangulation = tri_in;
       obj.points = p_in;
+      obj.allBoundaryNodes = obj.getBoundaryNodes();
       obj.dirichletBoundaryNodes = obj.dirichletNodes(neumannIdentifier);
       obj.neumannBoundaryFaces = obj. neumannFaces(neumannIdentifier);
+      obj.rod = rod;
+      obj.neumannFaceRod = obj.getNeumannFaceRod();
     end
     
     %returns the cornerpoints of a triangle (or higher dim equivalent)
@@ -46,6 +52,35 @@ classdef FullMesh
         end
         if(tester)
           ne = [ne;edge];
+        end
+      end
+    end
+    
+    function nfr = getNeumannFaceRod(obj)
+       nf = obj.neumannBoundaryFaces;
+       if isempty(nf)
+           nfr = [];
+           return
+       end
+       nfr = zeros(length(nf),1);
+       for i = 1:length(nf(:,1))
+           for j = 1:length(obj.triangulation)
+                if(all(ismember(nf(i,:),obj.triangulation(j,:))))
+                    nfr(i) = obj.rod(j);
+                    break
+                end
+           end
+       end
+    end
+    
+    function bn = getBoundaryNodes(obj)
+      bn = [];
+      be = obj.boundaryEdges();
+      for edge=be'
+        for v=edge'
+          if not(ismember(v,bn))
+            bn = [bn,v];
+          end
         end
       end
     end

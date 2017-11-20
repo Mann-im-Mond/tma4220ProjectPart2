@@ -11,6 +11,8 @@ classdef HeatEquationSolver < handle
         
         stiffnessMatrix
         odeMatrix
+        fullStiffnessMatrix
+        fullOdeMatrix
         neumannVector
         dirichletVector
         initialValues
@@ -38,6 +40,7 @@ classdef HeatEquationSolver < handle
             interval = obj.timeInterval;
             u_0 = obj.initialValues;
             timeSolver = TimeSolver(u_0,interval,M,-A,V);
+            disp('starting time solver.')
             uRaw = timeSolver.solve('method','crankNicolson','saveSolutionEvery',interval.n_to_plot);
             u = obj.reinsertDirichletBoundary(uRaw);
         end 
@@ -45,14 +48,27 @@ classdef HeatEquationSolver < handle
     
     methods
         function  initializeSystem(obj)
+            disp('start calculating stiffness matrix...')
+            tic;
             obj.stiffnessMatrix = obj.getStiffnessMatrix();
+            toc
+            disp('start calculating ode matrix...')
+            tic;
             obj.odeMatrix = obj.getODEMatrix();
+            obj.fullStiffnessMatrix = obj.stiffnessMatrix;
+            obj.fullOdeMatrix = obj.odeMatrix;
+            toc
+                disp('start calculating neumann vector...')
+            tic;
             syms x t;
             if(diff(obj.neumannFunction, t) == 0)
                 obj.neumannVector = obj.getNeumannVector(@(x) obj.neumannFunction(x,0));
             else
                 obj.neumannVector = @(t) obj.getNeumannVector(@(x) obj.neumannFunction(x,t));
             end
+            toc
+                disp('start calculating dirichlet vector...')
+            tic;
             if(diff(obj.dirichletFunction, t) == 0)
                 obj.dirichletVector = obj.getDirichletVector(@(x) obj.dirichletFunction(x,0), ...
                     @(x) obj.derivedDirichletFunction(x,0));
@@ -60,6 +76,7 @@ classdef HeatEquationSolver < handle
                 obj.dirichletVector = @(t) obj.getDirichletVector(@(x) obj.dirichletFunction(x,t), ...
                     @(x) obj.derivedDirichletFunction(x,t));
             end
+            toc
             reset(symengine);
             obj.initialValues = obj.getInitialValues();
             obj.removeDirichletBoundaryFromMatrices();
@@ -91,13 +108,14 @@ classdef HeatEquationSolver < handle
             basicTriangle = BasicTriangle(dim);
             B = basicTriangle.getPDEOfbasisFunction();                      % matrix of partial differential equations
 
-            for cornerIndices = triangles'
+            for idx = 1:length(triangles(:,1))
+                cornerIndices = triangles(idx,:);
                 corners = obj.mesh.corners(cornerIndices);
                 triangle = Triangle(corners);
                 J = triangle.getJacobiFromBasis();
                 G = inv(transpose(J))*B;                                    % only a helpingt step towards our submatrix
                 subMatrix = transpose(G) * G * abs(det(J))/factorial(dim)...  % this is our submatrix
-                    * obj.alpha(triangle.centerOfMass()); % here we scale the submatrix by the termal factor alpha, which belongs to this triangle
+                    * obj.alpha(obj.mesh.rod(idx)); % here we scale the submatrix by the termal factor alpha, which belongs to this triangle
                 A(cornerIndices,cornerIndices) = ...
                     A(cornerIndices,cornerIndices) + subMatrix;
             end
@@ -116,10 +134,9 @@ classdef HeatEquationSolver < handle
                 corners = obj.mesh.corners(cornerIndices);
                 triangle = Triangle(corners);
                 J = triangle.getJacobiFromBasis();
-                alphafactor = obj.alpha(triangle.centerOfMass());
                 M(cornerIndices,cornerIndices) = ...
                     M(cornerIndices,cornerIndices) + ...
-                    abs(det(J))*productIntegrals*alphafactor;
+                    abs(det(J))*productIntegrals;
             end
         end
         
@@ -134,15 +151,16 @@ classdef HeatEquationSolver < handle
                 quad = QuadratFunctionGenerator().getQuadratureFunction(subdim);
                 basicCorners = basicTriangle.getCornerPoints();
 
-                for face = neumannFaces'
-                    corners = points(face',:);
+                for idx = 1:length(neumannFaces(:,1))
+                    face = neumannFaces(idx,:);
+                    corners = points(face(:),:);
                     triangle = Triangle(corners);
                     trafo = triangle.getTrafoFromBasis();
                     transformedNeumann = @(x) timeConstantNeumann(trafo(x));
                     volumeFace = triangle.getVolume();
                     volumeBasic = 1/(factorial(subdim));
                     quot = abs(volumeFace/volumeBasic);
-                    alphafactor = obj.alpha(triangle.centerOfMass());
+                    alphafactor = obj.alpha(obj.mesh.neumannFaceRod(idx));
 
                     % add the amound of the integral over this basis element
 
@@ -159,9 +177,11 @@ classdef HeatEquationSolver < handle
             N(dirichletNodes)       = [];
         end
         
+        %this function has to be called after the generation of the
+        %stiffness and the ode matrix!
         function D = getDirichletVector(obj, timeConstantDirichlet, timeConstantDerivative)
-            A = obj.getStiffnessMatrix();
-            M = obj.getODEMatrix();
+            A = obj.fullStiffnessMatrix;
+            M = obj.fullOdeMatrix;
             points = obj.mesh.points;
             dirichletNodes = obj.mesh.dirichletBoundaryNodes;
             dirichletValues = zeros(length(points),1);

@@ -14,8 +14,8 @@ points = [0,0;0,2;1,1;1.5,1;2,0;2,2];
 triangles = [1,2,3;1,3,5;2,3,6;3,4,5;3,4,6;4,5,6];
 success = true;
 neumannIdentifier = @(x) (x(1)>.5);
-mesh = FullMesh(triangles, points, neumannIdentifier);
-alpha = @(x) x(1)*0 +1;
+mesh = FullMesh(triangles, points,[1,1,1,1,1,1], neumannIdentifier);
+alpha = @(t,m) t(1)*0 +1;
 timeInterval = TimeInterval(0,1,.01,10);
 u0 = @(x) x(1)*0 +0;
 gD = @(x,t) norm(x(:)'*[0;1],1) +1 +1*t^2;
@@ -25,6 +25,8 @@ gN = @(x,t) norm(x(:)'*[1;1],1) +0 +0*t;
 %triplot(triangles,points(:,1),points(:,2));
 
 solver = HeatEquationSolver(mesh,timeInterval,alpha,u0,gD,gN);
+solver.initializeSystem();
+
 
 % --- Check Stiffness Matrix ---
 stiffnessMatrix = solver.getStiffnessMatrix();
