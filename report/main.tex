@@ -7,6 +7,7 @@
 \usepackage{pdflscape}
 \usepackage{amsmath, amssymb}
 \usepackage{enumitem}
+\usepackage{siunitx}
 \usepackage{cite}
 
 \setenumerate{itemsep=0pt, topsep=5pt, parsep=0pt}
@@ -20,9 +21,12 @@
 
 \begin{document}
 \maketitle
+
+\input{introduction.tex}
 \input{problem.tex}
 \input{setupSystem.tex}
 
+\input{modelling.tex}
 \bibliographystyle{alpha}
 \bibliography{bibliography}{}
 \end{document}
