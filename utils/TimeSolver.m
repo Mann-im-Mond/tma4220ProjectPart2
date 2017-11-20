@@ -62,19 +62,19 @@ classdef TimeSolver < handle
             saveSolutionEveryTimeSteps=obj.interval.getNumberOfSteps();
             saveSolutionEveryTimeStepsIsSet= false;
             skipNextLoop=false;
-            for j=1:length(varargin)
+            for j=1:nargin
                 if(skipNextLoop)
                     skipNextLoop=false;
                     continue
                 end
                 switch varargin{j}
                     case 'method'
-                        if j<length(varargin)
+                        if j<length(nargin)
                             method=varargin{j+1};
                         end
                         skipNextLoop=true;
                     case 'stoppingCondition'
-                        if j<length(varargin)
+                        if j<length(nargin)
                             if(isa(varargin{j+1},'function_handle'))
                                 stoppingCondition=varargin{j+1};
                                 stoppingConditionIsSet=true;
@@ -82,7 +82,7 @@ classdef TimeSolver < handle
                         end
                         skipNextLoop=true;
                     case 'saveSolutionEvery'
-                        if j<length(varargin)
+                        if j<length(nargin)
                             if(isa(varargin{j+1},'double'))
                                 saveSolutionEveryTimeSteps=varargin{j+1};
                                 saveSolutionEveryTimeStepsIsSet=true;
@@ -148,14 +148,14 @@ classdef TimeSolver < handle
             %initiate the interval
             K=obj.interval.getNumberOfSteps();
             %initiate u
-            u=zeros(length(obj.u_0),2);
+            u=zeros(length(obj.u_0(:,1)),2);
             u(:,1)=obj.u_0;
             swap=1;
             
             if(saveSolutionEveryTimeStepsIsSet)
                 %initialize return matrix
                 j=1;
-                U=[obj.u_0,zeros(length(u),floor(K/saveSolutionEveryTimeSteps))];
+                U=[obj.u_0,zeros(length(u(:,1)),floor(K/saveSolutionEveryTimeSteps))];
                 if(stoppingConditionIsSet)
                     for k = 2:K+1
                         swap=3-swap;
@@ -211,14 +211,14 @@ classdef TimeSolver < handle
             %initiate the interval
             K=obj.interval.getNumberOfSteps();
             %initiate u
-            u=zeros(length(obj.u_0),2);
+            u=zeros(length(obj.u_0(:,1)),2);
             u(:,1)=obj.u_0;
             swap=1;
             
             if(saveSolutionEveryTimeStepsIsSet)
                 %initialize return matrix
                 j=1;
-                U=[obj.u_0,zeros(length(u),floor(K/saveSolutionEveryTimeSteps))];
+                U=[obj.u_0,zeros(length(u(:,1)),floor(K/saveSolutionEveryTimeSteps))];
                 if(stoppingConditionIsSet)
                     for k = 2:K+1
                         swap=3-swap;
