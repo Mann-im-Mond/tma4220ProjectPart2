@@ -5,7 +5,9 @@ function movieOut = plotFromFile(folderPath,t_max,timeStep,dim,outputFile)
     timeInterval = TimeInterval(0,t_max,timeStep,plot_num);
     plotter=Plotter(u,mesh,timeInterval);
     if(dim == 2)
-        movieOut = plotter.animateSlicePlot2D();
+        movieOut = plotter.animateSlicePlot2D(0.001);
+    elseif(dim == 2.5)
+        movieOut = plotter.animateSlicePlot3D([0,1,0;0,0,1;1,0,0],[0,0,0.1]');
     elseif(dim == 3)
         movieOut = plotter.animateScatterPlot();
     end
@@ -18,4 +20,3 @@ function movieOut = plotFromFile(folderPath,t_max,timeStep,dim,outputFile)
         close(v)
     end
 end
-
