@@ -39,8 +39,8 @@ classdef TimeSolver < handle
             obj.M=M;
             obj.A=A;
             obj.V=V;
-            obj.tolerance=10^(-3);
-            obj.maxIterations=10;
+            obj.tolerance=10^(-5);
+            obj.maxIterations=100;
         end
             
         function [u,t] = solve(obj,varargin)
@@ -59,10 +59,10 @@ classdef TimeSolver < handle
             method='';
             stoppingCondition=@(u) false;
             stoppingConditionIsSet= false;
-            saveSolutionEveryTimeSteps=obj.interval.getNumberOfSteps();
+            saveSolutionEveryTimeSteps=obj.interval.n_to_plot;
             saveSolutionEveryTimeStepsIsSet= false;
             skipNextLoop=false;
-            for j=1:nargin-1
+            for j=1:length(varargin)
                 if(skipNextLoop)
                     skipNextLoop=false;
                     continue
@@ -82,7 +82,7 @@ classdef TimeSolver < handle
                         end
                         skipNextLoop=true;
                     case 'saveSolutionEvery'
-                        if j<length(nargin)
+                        if j<length(varargin)
                             if(isa(varargin{j+1},'double'))
                                 saveSolutionEveryTimeSteps=varargin{j+1};
                                 saveSolutionEveryTimeStepsIsSet=true;

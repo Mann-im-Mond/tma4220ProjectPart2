@@ -357,7 +357,7 @@ classdef Plotter < handle
         function handler=slicePlotSingleStep2D(obj,delTri,plainPoints,K)
             interpol = scatteredInterpolant(obj.mesh.points,obj.u(:,K));
             u_test=interpol(plainPoints(:,1),plainPoints(:,2),plainPoints(:,3));
-            C=Plotter.colorConverterStatic(u_test,min(u_test),max(u_test));
+            C=Plotter.colorConverterStatic(u_test,obj.u_min,obj.u_max);
             handler=patch('Faces',delTri.ConnectivityList,'Vertices',delTri.Points,'FaceColor','flat','FaceVertexCData',C,'EdgeColor','none');
             legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1))],'Location','northoutside');
         end
