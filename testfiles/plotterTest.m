@@ -18,6 +18,7 @@ close();
 plotter.animateSlicePlot3D(0.01);
 close();
 plotter.animateSlicePlot3D(0.01,R,v_0);
+close();
 R=[0,1,0;0,0,1;1,0,0];
 v_0 = [0,0,0]';
 plotter.animateSlicePlot3D(0.01,R,v_0);
