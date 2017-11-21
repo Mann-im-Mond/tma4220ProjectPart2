@@ -62,7 +62,7 @@ classdef TimeSolver < handle
             saveSolutionEveryTimeSteps=obj.interval.getNumberOfSteps();
             saveSolutionEveryTimeStepsIsSet= false;
             skipNextLoop=false;
-            for j=1:nargin
+            for j=1:nargin-1
                 if(skipNextLoop)
                     skipNextLoop=false;
                     continue
