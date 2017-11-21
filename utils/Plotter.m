@@ -54,10 +54,10 @@ classdef Plotter < handle
             elseif (M==1)
                 timeInterval.t_max=timeInterval.t_0;
                 timeInterval.setDescreteInterval();
-            elseif (M<timeInterval.n_to_plot+1)
+            elseif (M<timeInterval.getNumberOfSteps()/timeInterval.n_to_plot+1)
                 timeInterval.t_max=(M-1)*timeInterval.h;
                 timeInterval.setDescreteInterval();
-            elseif (M>timeInterval.n_to_plot+1)
+            elseif (M>timeInterval.getNumberOfSteps()/timeInterval.n_to_plot+1)
                 error('To many timesteps');
             end
             obj.u=u;
