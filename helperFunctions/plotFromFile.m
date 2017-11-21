@@ -6,11 +6,11 @@ function movieOut = plotFromFile(folderPath,t_max,timeStep,dim,outputFile)
     plotter=Plotter(u,mesh,timeInterval);
     if(dim == 2)
         movieOut = plotter.animateSlicePlot2D();
-    else if(dim == 3)
+    elseif(dim == 3)
         movieOut = plotter.animateScatterPlot();
-    end 
-    if not(isequal(outputFile,''))
-        disp(['writing movie to' outputFile])
+    end
+    if not(isempty(outputFile))
+        disp(['writing movie to ' outputFile])
         v = VideoWriter(outputFile);
         v.FrameRate = 6;
         open(v);
