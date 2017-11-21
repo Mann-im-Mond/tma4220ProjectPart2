@@ -359,7 +359,9 @@ classdef Plotter < handle
             u_test=interpol(plainPoints(:,1),plainPoints(:,2),plainPoints(:,3));
             C=Plotter.colorConverterStatic(u_test,obj.u_min,obj.u_max);
             handler=patch('Faces',delTri.ConnectivityList,'Vertices',delTri.Points,'FaceColor','flat','FaceVertexCData',C,'EdgeColor','none');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1))],'Location','northoutside');
+            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1))],...
+                ['u_{average}=' num2str(mean(u_test)-273) '°C'],...
+                ['u_{min}=' num2str(min(u_test)-273) '°C'],'Location','northoutside');
         end
         
         function movie=animateSlicePlot3D(obj,varargin)
