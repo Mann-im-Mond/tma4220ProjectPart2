@@ -1,0 +1,74 @@
+
+dateTimeStamp =
+
+    '20Nov2017_20-49-30'
+
+
+neumannIdentifier =
+
+  function_handle with value:
+
+    @(x)false
+
+
+mesh = 
+
+  FullMesh with properties:
+
+      neumannBoundaryFaces: []
+    dirichletBoundaryNodes: [1x2215 double]
+          allBoundaryNodes: [1x2215 double]
+             triangulation: [21904x4 double]
+                    points: [4841x3 double]
+                       rod: [21904x1 double]
+            neumannFaceRod: []
+
+
+alpha =
+
+  function_handle with value:
+
+    @(isRod)alphaFkt(isRod)
+
+
+timeInterval = 
+
+  TimeInterval with properties:
+
+                 t_0: 0
+               t_max: 7200
+                   h: 1
+           n_to_plot: 60
+    descreteInterval: [1x7201 double]
+
+
+u0 =
+
+  function_handle with value:
+
+    @(x)x(1)*0+293
+
+
+gD =
+
+  function_handle with value:
+
+    @(x,t)x(1)*0+473
+
+
+gN =
+
+  function_handle with value:
+
+    @(x,t)x(1)*0
+
+start to solve.
+start calculating stiffness matrix...
+Elapsed time is 2.089143 seconds.
+start calculating ode matrix...
+Elapsed time is 0.957808 seconds.
+start calculating neumann vector...
+Elapsed time is 0.982289 seconds.
+start calculating dirichlet vector...
+Elapsed time is 0.070277 seconds.
+starting time solver.
