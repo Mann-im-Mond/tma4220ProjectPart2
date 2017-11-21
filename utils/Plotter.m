@@ -100,11 +100,13 @@ classdef Plotter < handle
                 error(['K has to be between 1 and ',length(obj.u(1,:))]);
             end
             handler=scatter3(obj.mesh.points(:,1),obj.mesh.points(:,2),obj.mesh.points(:,3),10.*ones(length(obj.mesh.points(:,1)),1),obj.colorConverter(K),'filled');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1))],'Location','northoutside');
-        end
+            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1)/60) 'min' newline...
+                'u_{average}=' num2str(mean(obj.u(:,K))-273) '°C' newline...
+                'u_{min}=' num2str(min(obj.u(:,K))-273) '°C' newline...
+                'u_{max}=' num2str(max(obj.u(:,K))-273) '°C'],'Location','northoutside');        end
         
         function movie=animateScatterPlot(obj)
-            figure('Name','Scatter plot animation');
+            fig1=figure('Name','Scatter plot animation');
             title('Scatter plot animation');
             if(obj.dim==2)
                 xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
@@ -121,13 +123,13 @@ classdef Plotter < handle
             ax = gca;
             ax.NextPlot = 'replaceChildren';
             drawnow;
-            movie(1) = getframe;
+            movie(1) = getframe(fig1);
             [~,loops]=size(obj.u);
             movie(loops) = struct('cdata',[],'colormap',[]);
             for j = 2:loops
                 obj.scatterPlotSingleTimeStep(j);
                 drawnow;
-                movie(j) = getframe;
+                movie(j) = getframe(fig1);
             end
             obj.appendMovie(movie);
         end
@@ -136,7 +138,7 @@ classdef Plotter < handle
         %Plots an animation over the timesteps in u where u<=threshold. The
         %animation will be the bounary of the points where u<=thresholds
         %holds.
-            figure('Name','Shrinking plot animation');
+            fig1=figure('Name','Shrinking plot animation');
             title('Shrinking plot animation');
             if(obj.dim==2)
                 xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
@@ -153,13 +155,13 @@ classdef Plotter < handle
             ax = gca;
             ax.NextPlot = 'replaceChildren';
             drawnow;
-            movie(1) = getframe;
+            movie(1) = getframe(fig1);
             [~,loops]=size(obj.u);
             movie(loops) = struct('cdata',[],'colormap',[]);
             for j = 2:loops
                 obj.shrinkingPlotSingleStep(threshold,j);
                 drawnow;
-                movie(j) = getframe;
+                movie(j) = getframe(fig1);
             end
             obj.appendMovie(movie);
         end
@@ -388,7 +390,7 @@ classdef Plotter < handle
                 plainPoints(k,:)=plain.plain(delTri.Points(k,1),delTri.Points(k,2))';
             end
             
-            figure('Name','Slice plot animation 3D');
+            fig1=figure('Name','Slice plot animation 3D');
             title('Slice plot animation 3D');
             view(3);
             xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
@@ -400,13 +402,13 @@ classdef Plotter < handle
             ax = gca;
             ax.NextPlot = 'replaceChildren';
             drawnow;
-            movie(1) = getframe;
+            movie(1) = getframe(fig1);
             [~,loops]=size(obj.u);
             movie(loops) = struct('cdata',[],'colormap',[]);
             for j = 2:loops
                 obj.slicePlotSingleStep3D(delTri,plainPoints,j);
                 drawnow;
-                movie(j) = getframe;
+                movie(j) = getframe(fig1);
             end
             obj.appendMovie(movie);
         end
@@ -416,8 +418,10 @@ classdef Plotter < handle
             u_test=interpol(plainPoints(:,1),plainPoints(:,2),plainPoints(:,3));
             C=Plotter.colorConverterStatic(u_test,obj.u_min,obj.u_max);
             handler=patch('Faces',delTri.ConnectivityList,'Vertices',plainPoints,'FaceColor','flat','FaceVertexCData',C,'EdgeColor','none');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1))],'Location','northoutside');
-        end
+            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1)/60) 'min' newline...
+                'u_{average}=' num2str(mean(u_test)-273) '°C' newline...
+                'u_{min}=' num2str(min(u_test)-273) '°C' newline...
+                'u_{max}=' num2str(max(u_test)-273) '°C'],'Location','northoutside');        end
         
         function delTri=getPlainTriangulation(obj,plain,density)
             %Rotate
