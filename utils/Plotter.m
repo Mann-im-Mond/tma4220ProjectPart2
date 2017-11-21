@@ -28,24 +28,30 @@ classdef Plotter < handle
         pdeModel
     end
     
-    methods (Access=private,Static)
-        function rgb=colorConverterStatic(u,min,max)
-            to01Convert=@(v) (v-min)/(max-min);
+    methods (Access=public,Static)
+        function rgb=colorConverterStatic(u,u_min,u_max)
+            to01Convert=@(v) (v-u_min)/(u_max-u_min);
             cC=@(v) [min(2*to01Convert(v),1),min(2*to01Convert(v),2-2*to01Convert(v)),max(1-2*to01Convert(v),0)];
             rgb=cC(u);
         end
         
         function handler=slicePlotStatic(u,tri,plain_points)
-            l=length(tri);
+            l=length(tri(:,1));
             Y=zeros(3,l);
             Z=zeros(3,l);
+            C=zeros(3,l);
+            %Set the color to blue everywhere
+            C(:,3)=1;
             %Set the color to blue everywhere
             for k=1:l
-                Y(:,k)=plain_points(tri(1,:),1);
-                Z(:,k)=plain_points(tri(:,k),2);
+                Y(:,k)=plain_points(tri(k,:),1);
+                Z(:,k)=plain_points(tri(k,:),2);
             end
-            C=Plotter.colorConverterStatic(u,min(u),max(u));
-            handler=fill3(zeros(1,3),Y,Z,C,'filled');
+            for k=1:l
+                tmp=Plotter.colorConverterStatic(u(tri(k,:)),min(u),max(u));
+                C(:,k)=tmp(1,:)';
+            end
+            handler=fill(Y,Z,C);
         end
     end
     
@@ -297,19 +303,31 @@ classdef Plotter < handle
             projection=projection(1:counter);
         end 
         
-        function movie=animateSlicePlot(obj,eps,varargin)
+        function movie=animateSlicePlot2D(obj,varargin)
         %Plots an animation over the timesteps in u on the slice where x=0.
-            if(nargin==2)
-                E=Plain(eye(3),zeros(3,1));
+            if(nargin==1)
+                density=0.005;
+                plain=Plain(eye(3),zeros(3,1));
+            elseif(nargin==2)
+                density=varargin{1};
+                plain=Plain(eye(3),zeros(3,1));
+            elseif(nargin==3)
+                density=0.005;
+                plain=Plain(varargin{1},varargin{2});
             elseif(nargin==4)
-                E=Plain(varargin{1},varargin{2});
+                density=varargin{1};
+                plain=Plain(varargin{2},varargin{3});
             else
-                error('animateSlicePlot needs 0 or 2 input values (next to the plotter object)');
+                error('animateSlicePlot needs 0,1,2 or 3 input values (next to the plotter object)');
             end
-            [plain_points,projection]=getRotatedPlainPoints(obj,eps,E);
+            delTri=getPlainTriangulation(obj,plain,density);
+            plainPoints=zeros(length(delTri.Points(:,1)),3);
+            for k=1:length(delTri.Points(:,1))
+                plainPoints(k,:)=plain.plain(delTri.Points(k,1),delTri.Points(k,2))';
+            end
             
             figure('Name','Slice plot animation');
-            obj.slicePlotSingleStep(plain_points,projection,1);
+            obj.slicePlotSingleStep2D(delTri,plainPoints,1);
             axis tight manual;
             ax = gca;
             ax.NextPlot = 'replaceChildren';
@@ -318,46 +336,46 @@ classdef Plotter < handle
             [~,loops]=size(obj.u);
             movie(loops) = struct('cdata',[],'colormap',[]);
             for j = 2:loops
-                obj.slicePlotSingleStep(plain_points,projection,j);
+                obj.slicePlotSingleStep2D(delTri,plainPoints,j);
                 drawnow;
                 movie(j) = getframe;
             end
             obj.appendMovie(movie);
         end
         
-        function [plain_points,projection]=getRotatedPlainPoints2(obj,eps,E)
-            projection=zeros(length(obj.mesh.points(:,1)),1);
-            plain_points=zeros(length(obj.mesh.points(:,1)),3);
-            counter=0;
-            for k=1:length(obj.mesh.points(:,1))
-                if(E.closeTo(obj.mesh.points(k,:)',eps))
-                    counter=counter+1;
-                    projection(counter)=k;
-                    plain_points(counter,:)=E.plain_inverse(obj.mesh.points(k,:)')';
-                end
-            end
-            plain_points=plain_points(1:counter,2:3);
-            projection=projection(1:counter);
-        end 
-        
-        function handler=slicePlotSingleStep2(obj,plain_points,projection,K)
-            C=Plotter.colorConverterStatic(obj.u(projection,K),obj.u_min,obj.u_max);
-            handler=scatter(plain_points(:,1),plain_points(:,2),10.*ones(length(plain_points(:,1)),1),C,'filled');
+        function handler=slicePlotSingleStep2D(obj,delTri,plainPoints,K)
+            interpol = scatteredInterpolant(obj.mesh.points,obj.u(:,K));
+            u_test=interpol(plainPoints(:,1),plainPoints(:,2),plainPoints(:,3));
+            C=Plotter.colorConverterStatic(u_test,min(u_test),max(u_test));
+            handler=patch('Faces',delTri.ConnectivityList,'Vertices',delTri.Points,'FaceColor','flat','FaceVertexCData',C,'EdgeColor','none');
         end
         
-        function movie=animateSlicePlot2(obj,eps,varargin)
+        function movie=animateSlicePlot3D(obj,varargin)
         %Plots an animation over the timesteps in u on the slice where x=0.
-            if(nargin==2)
-                E=Plain(eye(3),zeros(3,1));
+            if(nargin==1)
+                density=0.005;
+                plain=Plain(eye(3),zeros(3,1));
+            elseif(nargin==2)
+                density=varargin{1};
+                plain=Plain(eye(3),zeros(3,1));
+            elseif(nargin==3)
+                density=0.005;
+                plain=Plain(varargin{1},varargin{2});
             elseif(nargin==4)
-                E=Plain(varargin{1},varargin{2});
+                density=varargin{1};
+                plain=Plain(varargin{2},varargin{3});
             else
-                error('animateSlicePlot needs 0 or 2 input values (next to the plotter object)');
+                error('animateSlicePlot needs 0,1,2 or 3 input values (next to the plotter object)');
             end
-            [plain_points,projection]=getRotatedPlainPoints2(obj,eps,E);
+            delTri=getPlainTriangulation(obj,plain,density);
+            plainPoints=zeros(length(delTri.Points(:,1)),3);
+            for k=1:length(delTri.Points(:,1))
+                plainPoints(k,:)=plain.plain(delTri.Points(k,1),delTri.Points(k,2))';
+            end
             
             figure('Name','Slice plot animation');
-            obj.slicePlotSingleStep2(plain_points,projection,1);
+            view(3);
+            obj.slicePlotSingleStep3D(delTri,plainPoints,1);
             axis tight manual;
             ax = gca;
             ax.NextPlot = 'replaceChildren';
@@ -366,11 +384,37 @@ classdef Plotter < handle
             [~,loops]=size(obj.u);
             movie(loops) = struct('cdata',[],'colormap',[]);
             for j = 2:loops
-                obj.slicePlotSingleStep2(plain_points,projection,j);
+                obj.slicePlotSingleStep3D(delTri,plainPoints,j);
                 drawnow;
                 movie(j) = getframe;
             end
             obj.appendMovie(movie);
+        end
+        
+        function handler=slicePlotSingleStep3D(obj,delTri,plainPoints,K)
+            interpol = scatteredInterpolant(obj.mesh.points,obj.u(:,K));
+            u_test=interpol(plainPoints(:,1),plainPoints(:,2),plainPoints(:,3));
+            C=Plotter.colorConverterStatic(u_test,min(u_test),max(u_test));
+            handler=patch('Faces',delTri.ConnectivityList,'Vertices',plainPoints,'FaceColor','flat','FaceVertexCData',C,'EdgeColor','none');
+        end
+        
+        function delTri=getPlainTriangulation(obj,plain,density)
+            %Rotate
+            points2D=plain.plain_inverse(obj.mesh.points')';
+            %Project to plain
+            points2D=points2D(:,2:3);
+            %Get the boundary
+            boundary2D=boundary(points2D);
+            boundarypolygon=points2D(boundary2D,:);
+            %Create square mesh
+            X=(min(points2D(:,1)):density:max(points2D(:,1)))';
+            Y=(min(points2D(:,2)):density:max(points2D(:,2)))';
+            square_mesh=zeros(length(X)*length(Y),2);
+            for k=1:length(X)
+                square_mesh((k-1)*length(Y)+1:k*length(Y),:)=[X(k)*ones(length(Y),1),Y];
+            end
+            %create mesh within boundary
+            delTri=delaunayTriangulation(square_mesh(inpolygon(square_mesh(:,1),square_mesh(:,2),boundarypolygon(:,1),boundarypolygon(:,2)),:));
         end
     end
 end

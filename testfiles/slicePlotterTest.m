@@ -1,0 +1,16 @@
+plotter=Plotter(u,mesh,timeInterval);
+plotter.animateSlicePlot2D();
+plotter.animateSlicePlot2D(0.01);
+plotter.animateSlicePlot2D(0.001);
+R=[0,0,1;1,0,0;0,1,0];
+v_0 = [0,0,0.1]';
+plotter.animateSlicePlot2D(0.01,R,v_0);
+plotter.animateSlicePlot3D();
+plotter.animateSlicePlot3D(0.01);
+plotter.animateSlicePlot3D(0.01,R,v_0);
+R=[0,1,0;0,0,1;1,0,0];
+v_0 = [0,0,0]';
+plotter.animateSlicePlot3D(0.01,R,v_0);
+R=[1,-1,0;0,1,0;0,0,1];
+v_0 = [0,0,0.075]';
+plotter.animateSlicePlot3D(0.01,R,v_0);

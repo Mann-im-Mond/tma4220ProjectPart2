@@ -26,6 +26,11 @@ classdef Plain
             v_transposed=obj.plain_inverse(v);
             bool=(abs(v_transposed(3))<=eps);
         end
+        
+        function projection=project(obj,v)
+            tmp=obj.plain_inverse(v);
+            projection=obj.plain(tmp(:,2),tmp(:,3));
+        end
     end
     
 end
