@@ -333,23 +333,23 @@ classdef Plotter < handle
                 plainPoints(k,:)=plain.plain(delTri.Points(k,1),delTri.Points(k,2))';
             end
             
-            figure('Name','Slice plot animation 2D');
+            fig1 = figure('Name','Slice plot animation 2D');
             title('Slice plot animation 2D');
             xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
             ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
-            
+           
             obj.slicePlotSingleStep2D(delTri,plainPoints,1);
             axis tight manual;
             ax = gca;
             ax.NextPlot = 'replaceChildren';
             drawnow;
-            movie(1) = getframe;
+            movie(1) = getframe(fig1);
             [~,loops]=size(obj.u);
             movie(loops) = struct('cdata',[],'colormap',[]);
             for j = 2:loops
                 obj.slicePlotSingleStep2D(delTri,plainPoints,j);
                 drawnow;
-                movie(j) = getframe;
+                movie(j) = getframe(fig1);
             end
             obj.appendMovie(movie);
         end
@@ -359,10 +359,10 @@ classdef Plotter < handle
             u_test=interpol(plainPoints(:,1),plainPoints(:,2),plainPoints(:,3));
             C=Plotter.colorConverterStatic(u_test,obj.u_min,obj.u_max);
             handler=patch('Faces',delTri.ConnectivityList,'Vertices',delTri.Points,'FaceColor','flat','FaceVertexCData',C,'EdgeColor','none');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1)/60) 'min'],...
-                ['u_{average}=' num2str(mean(u_test)-273) '°C'],...
-                ['u_{min}=' num2str(min(u_test)-273) '°C'],...
-                ['u_{max}=' num2str(max(u_test)-273) '°C'],'Location','northoutside');
+            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1)/60) 'min' newline...
+                'u_{average}=' num2str(mean(u_test)-273) '°C' newline...
+                'u_{min}=' num2str(min(u_test)-273) '°C' newline...
+                'u_{max}=' num2str(max(u_test)-273) '°C'],'Location','northoutside');
         end
         
         function movie=animateSlicePlot3D(obj,varargin)
