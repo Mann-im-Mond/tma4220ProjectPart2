@@ -39,8 +39,8 @@ classdef TimeSolver < handle
             obj.M=M;
             obj.A=A;
             obj.V=V;
-            obj.tolerance=10^(-5);
-            obj.maxIterations=100;
+            obj.tolerance=10^(-3);
+            obj.maxIterations=10;
         end
             
         function [u,t] = solve(obj,varargin)
