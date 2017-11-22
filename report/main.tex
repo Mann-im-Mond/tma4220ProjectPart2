@@ -9,6 +9,14 @@
 \usepackage{enumitem}
 \usepackage{siunitx}
 \usepackage{cite}
+\usepackage{listings} %for code
+\lstset{
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  frame=none,
+  breaklines=true,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+}
 
 \setenumerate{itemsep=0pt, topsep=5pt, parsep=0pt}
 \setitemize{itemsep=0pt, topsep=5pt, parsep=0pt}
@@ -25,7 +33,7 @@
 \input{introduction.tex}
 \input{problem.tex}
 \input{setupSystem.tex}
-
+\input{odesolver.tex}
 \input{modelling.tex}
 \bibliographystyle{alpha}
 \bibliography{bibliography}{}

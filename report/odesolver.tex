@@ -1,0 +1,28 @@
+% !TeX spellcheck = en_GB 
+
+\section{\label{sec::odesolver}Solving the ODE}
+
+From equation \ref{eqn::matrixForm} we get a system of $n_D-1$ ordinary differential equation of order 1, where at most the inhomogenious part can be non-linear. So we have to solve an initial value problem (IVP) of the form
+\begin{flalign*}
+	M\dot{u}=Au+b(t)
+\end{flalign*}
+on the interval $t\in\left[t_0,t_{max}\right]$ with initial value $u_0=u(t_0)$. The ODE can of course also be written as 
+\begin{flalign*}
+	\dot{u}=M^{-1}(Au+b(t))
+\end{flalign*}
+but inverting a matrix of size $(n_D-1)\times(n_D-1)$ would take probably at least $\mathcal{O}(n_D^3)$ \cite{li2009fastsolver} operations so is something that wants to be avoided, since e.g. in our case this would be of order $>10^{12}$. \\
+To solve the IVP we implemented four different (one step) solvers, two explicit solvers
+\begin{itemize}
+	\item Forward Euler
+	\item Improved Forward Euler
+\end{itemize}
+and two implicit solvers
+\begin{itemize}
+	\item Backwards Euler
+	\item Crank-Nicholson
+\end{itemize}
+
+\begin{lstlisting}[language=bash]
+\end{lstlisting}
+
+For this we implemented
