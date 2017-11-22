@@ -34,4 +34,17 @@ As people tend to be impatient, it might also be interesting, to consider the ca
 	\caption{\label{fig::dirichletHeat2D} side view heating Dirichlet boundary boundary}
 \end{figure}
 
-In the previous examples we saw, how the aluminium stick in the middle heated up the cake from the inside. To see, how much influence on the baking progress it actually had, we modelled the whole process without the aluminium in figure \textbf{missing plots here}. \textbf{missing obsevation here}.
+In the previous examples we saw, how the aluminium stick in the middle heated up the cake from the inside. To see, how much influence on the baking progress it actually had, we modelled the whole process without the aluminium in figure \ref{fig::dirichletFull2D}. As expected, we can observe it taking way longer than before. During the first 40 minutes the middle of the cake almost does not heat up at all. In total it takes almost three ours for the cake to be done in the middle. \footnote{Probably the outside of the cake is totally burned after that time. In practice professionals never bake such big massive cakes at ones. My room-mate back home, who is a confectioner, told me that cakes like this are baked in layers and putted together afterwards.}
+
+\begin{figure}[htp]
+	\centering
+	\makebox[\textwidth][c]{
+	\includegraphics[width=0.69\textwidth]{figures/dirichlet_fullCake_2D001.png}
+	\includegraphics[width=0.69\textwidth]{figures/dirichlet_fullCake_2D041.png}
+	}
+	\makebox[\textwidth][c]{
+	\includegraphics[width=0.69\textwidth]{figures/dirichlet_fullCake_2D121.png}
+	\includegraphics[width=0.69\textwidth]{figures/dirichlet_fullCake_2D181.png}
+	}
+	\caption{\label{fig::dirichletFull2D} side view of a baking cake without the aluminium stick}
+\end{figure}
