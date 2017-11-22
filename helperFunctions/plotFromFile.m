@@ -6,11 +6,14 @@ function movieOut = plotFromFile(folderPath,t_max,timeStep,dim,outputFile)
     plotter=Plotter(u,mesh,timeInterval);
     if(dim == 2)
         movieOut = plotter.animateSlicePlot2D(0.001);
-    elseif(dim == 2.5)
-        movieOut = plotter.animateSlicePlot3D([0,1,0;0,0,1;1,0,0],[0,0,0.1]');
+    elseif(dim == 2.4)
+        movieOut = plotter.animateSlicePlot2D(0.001,[0,1,0;0,0,1;1,0,0],[0,0,0.1]');
+    elseif(dim == 2.6)
+        movieOut = plotter.animateSlicePlot3D(0.001,[0,1,0;0,0,1;1,0,0],[0,0,0.1]');
     elseif(dim == 3)
         movieOut = plotter.animateScatterPlot();
     end
+    close();
     if not(isempty(outputFile))
         disp(['writing movie to ' outputFile])
         v = VideoWriter(outputFile);

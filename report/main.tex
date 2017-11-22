@@ -5,10 +5,12 @@
 \usepackage{pdfpages}
 %\usepackage{hyperref}
 \usepackage{pdflscape}
+\usepackage{graphics}
 \usepackage{amsmath, amssymb}
 \usepackage{enumitem}
 \usepackage{siunitx}
 \usepackage{cite}
+<<<<<<< HEAD
 \usepackage{listings} %for code
 \lstset{
   basicstyle=\ttfamily,
@@ -17,6 +19,9 @@
   breaklines=true,
   postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
 }
+=======
+\usepackage{floatrow}
+>>>>>>> HEAD
 
 \setenumerate{itemsep=0pt, topsep=5pt, parsep=0pt}
 \setitemize{itemsep=0pt, topsep=5pt, parsep=0pt}
@@ -33,8 +38,14 @@
 \input{introduction.tex}
 \input{problem.tex}
 \input{setupSystem.tex}
+<<<<<<< HEAD
 \input{odesolver.tex}
+=======
+
+\input{code.tex}
+>>>>>>> HEAD
 \input{modelling.tex}
+\input{results.tex}
 \bibliographystyle{alpha}
 \bibliography{bibliography}{}
 \end{document}
