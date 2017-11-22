@@ -11,15 +11,18 @@ on the interval $t\in\left[t_0,t_{max}\right]$ with initial value $u_0=u(t_0)$. 
 	\dot{u}=M^{-1}(Au+b(t))
 \end{flalign*}
 but inverting a matrix of size $(n_D-1)\times(n_D-1)$ would take probably at least $\mathcal{O}(n_D^3)$ \cite{li2009fastsolver} operations so is something that wants to be avoided, since e.g. in our case this would be of order $>10^{12}$. \\
-To solve the IVP we implemented four different (one step) solvers, two explicit solvers
+To solve the IVP we implemented the following four different solvers. All of them are one step solvers, meaning to compute the next time step only the timestep before is used. Two of the solvers are explicit and two implicit. The advantage of an explicit solver is normaly, that for each time step only one matrix multiplication and one vector addition would be needed. Since in our case we have to solve for $M$ at all, this will not realy help. Also explicit methods are not stable especially over a long time \cite{damenreusken2006bible}. But baking a cake takes normaly more then 1 hour or 3600 seconds. The disatvantage of implicit methods is, that you have to invert a matrix every time step, therefor they are satble also over a long time. So the methods we implemented and their iterations are
 \begin{itemize}
-	\item Forward Euler
-	\item Improved Forward Euler
-\end{itemize}
-and two implicit solvers
-\begin{itemize}
-	\item Backwards Euler
-	\item Crank-Nicholson
+	\item Implicit methods
+	\begin{enumerate}{1.)}
+		\item Forward Euler
+		\item Improved Forward Euler
+	\end{enumerate}
+	\item Explicit methods
+	\begin{enumerate}{3.)}
+		\item Backwards Euler
+		\item Crank-Nicholson
+	\end{enumerate}
 \end{itemize}
 
 \begin{lstlisting}[language=bash]
