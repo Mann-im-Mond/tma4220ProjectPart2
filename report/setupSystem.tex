@@ -89,3 +89,5 @@ with $i,j=1,\dots (n_D-1)$. Using these we get the the differential equation:
 	M\frac{\partial u}{\partial t} = -A u + N - D.
 \end{equation}
 We will later see how to solve this.
+
+For the practical part we implemented functions, which can calculate these matrices and vectors. To do so we use the transformation properties of the barycentric coordinates from the basic element (triangle or higher dimensional equivalent). As we wanted to be able to solve the problem as general as possible, we allow $g$ and $d$ to be space and time dependent. If one of them depends on time, the corresponding vectors has to be calculated every time step in the solution of the differential equation (section \ref{sec::odesolver}). The thermal diffusivity $\alpha$ can differ between the elements, but we assume it to be constant within each.
