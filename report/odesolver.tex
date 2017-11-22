@@ -2,7 +2,7 @@
 
 \section{\label{sec::odesolver}Solving the ODE}
 
-From equation \ref{eqn::matrixForm} we get a system of $n_D-1$ ordinary differential equation of order 1, where at most the inhomogenious part can be non-linear. So we have to solve an initial value problem (IVP) of the form
+From equation (\ref{eqn::matrixForm}) we get a system of $n_D-1$ ordinary differential equation of order 1, where at most the inhomogenious part can be non-linear. So we have to solve an initial value problem (IVP) of the form
 \begin{flalign*}
 	M\dot{u}=Au+v(t)
 \end{flalign*}
@@ -11,7 +11,7 @@ on the interval $t\in\left[t_0,t_{max}\right]$ with initial value $u_0=u(t_0)$. 
 	\dot{u}=M^{-1}(Au+v(t))
 \end{flalign*}
 but inverting a matrix of size $(n_D-1)\times(n_D-1)$ would take probably at least $\mathcal{O}(n_D^3)$ \cite{li2009fastsolver} operations so is something that wants to be avoided, since e.g. in our case this would be of order $>10^{12}$. \\
-To solve the IVP we implemented the following four different solvers. All of them are one step solvers, meaning to compute the next time step only the timestep before is used. Two of the solvers are explicit and two implicit. The advantage of an explicit solver is normaly, that for each time step only one matrix multiplication and one vector addition would be needed. Since in our case we have to solve for $M$ at all, this will not realy help. Also explicit methods are not stable especially over a long time \cite{damenreusken2006bible}. But baking a cake takes normaly more then 1 hour or 3600 seconds. The disadvantage of implicit methods is, that you have to invert a matrix every time step, therefor they are satble also over a long time. Finaly the methods we implemented and their iterations are
+To solve the IVP we implemented the following four different solvers. All of them are one step solvers, meaning to compute the next time step only the timestep before is used. Two of the solvers are explicit and two implicit. The advantage of an explicit solver is normaly, that for each time step only one matrix multiplication and one vector addition would be needed. Since in our case we have to solve for $M$ at all, this will not realy help. Also explicit methods are not stable especially over a long time \cite{dahmen2006numerik}, since the matrix is expected to be stiff and having a condition number, that encreases with smaller stepwidth $h$. But baking a cake takes normaly more then 1 hour or 3600 seconds. The disadvantage of implicit methods is, that you have to invert a matrix every time step, therefor they are satble also over a long time. Finaly the methods we implemented and their iterations are
 \begin{itemize}
 	\item Implicit methods
 	\begin{enumerate}[label=\arabic*.)]
@@ -36,9 +36,8 @@ To solve the IVP we implemented the following four different solvers. All of the
 		\end{flalign*}
 	\end{enumerate}
 \end{itemize}
-So we have to solve a linear system in each time step for each of these methods. Instead of completly solving the system we want to do some steps of an iterative solver. The most convincing solver we found is the preconditioned conjugete gradient (PCG) method. This method is even implemented in MATLAB and can called with \emph{pcg}. As preconditioner we chose modified incomplete cholesky decomposition, which is also implemented and can be called by \emph{ichol}. The advantage of this combination is, that in case the matrix that has to be inverted is symmetric positiv definit (spd), also the preconditioning matrix for conjugate gradient is spd.
-
-\begin{lstlisting}[language=bash]
+So we have to solve a linear system in each time step for each of these methods. Instead of completly solving the system we want to do some steps of an iterative solver. The most convincing solver we found is the preconditioned conjugete gradient (PCG) method. This method is implemented in MATLAB and can called by \emph{pcg}. As preconditioner we chose modified incomplete cholesky decomposition, which is also implemented and can be called by
+\begin{lstlisting}[language=matlab]
+	ichol(Matrix,struct('michol','on'))
 \end{lstlisting}
-
-For this we implemented
+in MATLAB. The paper \cite{tatebe1993multigrid} compares the cholesky preconditioner with multigrid as preconditioner. Here we see, that solving a huge matrix is faster using multigrid as preconditioner. But for our case, where the matrix is large but not huge, doing a few steps with cholesky as preconditioner takes around the same time.
