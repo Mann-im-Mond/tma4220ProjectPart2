@@ -27,6 +27,7 @@ classdef TimeSolver < handle
     end
     
     properties (Access=private)
+        %Here the matrices and vector needed in each time step are stored.
         rightSideVector
         iteratorLeftHandSide
         iteratorRightHandSide
@@ -34,6 +35,7 @@ classdef TimeSolver < handle
     
     methods
         function obj=TimeSolver(u_0,interval,M,A,V)
+            %Standart constructor
             obj.u_0=u_0;
             obj.interval=interval;
             obj.M=M;

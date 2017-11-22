@@ -10,8 +10,11 @@ classdef Plotter < handle
 % timeInterval:
 %           TimeInterval Object, that includes the time descretization.
 % dim:      Dimension of the mesh to be plottet.
-% movies:   Vector with struct containg created movies, that can be called
-%           with movie(movies(i))
+% movies:   Struct containg created movies, that can be called with
+%           movie(movies(i).movie)
+% u_min:    Value that is smaller or at most equal to the minum over all u
+% u_min:    Value that is greater or at least equal to the maximum over all u
+% 
 % See also FullMesh,TimeInterval
 
     properties
@@ -26,7 +29,15 @@ classdef Plotter < handle
     
     methods (Access=public,Static)
         function rgb=colorConverterStatic(u,u_min,u_max)
+        %colorConverterStatic(u,u_min,u_max) converts the given vector u
+        %into a color vector, where each entry of u will be converted into
+        %an rgb triplet where u_min will be converted to blue, u_max will
+        %be conderted to red and the middle (u_max-u-min)/2 will be
+        %converted to yellow inbetween the colors will be linear
+        %interpolated. So entries of u have to be between u_min and u_max.
+            %Shrink u into the interval [0,1]
             to01Convert=@(v) (v-u_min)/(u_max-u_min);
+            %Create RGB triplet.
             cC=@(v) [min(2*to01Convert(v),1),min(2*to01Convert(v),2-2*to01Convert(v)),max(1-2*to01Convert(v),0)];
             rgb=cC(u);
         end
@@ -34,6 +45,7 @@ classdef Plotter < handle
     
     methods (Access=private)
         function appendMovie(obj,movie)
+        %appendMovie appends a given movie to the movies struct.
             [~,tmp]=size(obj.movies);
             obj.movies(tmp+1).movie=movie;
         end
@@ -41,10 +53,16 @@ classdef Plotter < handle
     
     methods
         function rgb=colorConverter(obj,K)
+        %colorConverter(K) calls colorConverterStatic for time step K and
+        %u_min and u_max from the object and returns a vector with rgb
+        %triplets.
+        %
+        %See also colorConverterStatic
             rgb=Plotter.colorConverterStatic(obj.u(:,K),obj.u_min,obj.u_max);
         end
         
         function obj=Plotter(u,mesh,timeInterval)
+            %Standard constructor
             [N,M]=size(u);
             if not(N==length(mesh.points(:,1)))
                 error('The number of rows must be equal to the number of points in mesh');
@@ -64,14 +82,95 @@ classdef Plotter < handle
             obj.mesh=mesh;
             obj.timeInterval=timeInterval;
             [~,obj.dim]=size(mesh.points);
-%             pdeModel=createpde();
-%             pdeModel.geometryFromMesh(mesh.points',mesh.triangulation');
             obj.u_min=min(min(u));
             obj.u_max=max(max(u));
             obj.movies=[];
         end
         
+        function addLegend(obj,K)
+        %addLegend(K) adds a legend for the k-th step to the current figure.
+            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1)/60) 'min' newline...
+                'u_{average}=' num2str(mean(obj.u(:,K))-273) '°C' newline...
+                'u_{min}=' num2str(min(obj.u(:,K))-273) '°C' newline...
+                'u_{max}=' num2str(max(obj.u(:,K))-273) '°C'],'Location','northoutside');
+        end
+        
+        function addLabel(obj)
+        %addLabel() adds axis lables to the present axis.
+            if(obj.dim==2)
+                xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
+                ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
+            elseif(obj.dim==3)
+                xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
+                ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
+                zlabel([num2str(min(obj.mesh.points(:,3))),'<= z <= ',num2str(max(obj.mesh.points(:,3)))]); % z-axis label
+            else
+                error('Can only plot 2 or 3 dimensions.');
+            end
+        end
+        
+        function fig1=initAnimation(obj,name)
+        %initAnimation(name) creates a figure and gives it a title as well
+        %as a Label for the axis. It also makes sure, that for the 3D slice
+        %plot the plot will have three dimensions.
+            fig1=figure('Name',[name,' plot animation']);
+            title([name,' plot animation']);
+            if(strcmp(name,'3D slice'))
+                view(3);
+            end
+            obj.addLabel();
+        end
+        
+        function movie=animatePlot(obj,name,varargin)
+        %animatePlot(name,varargin) will call the function specified in
+        %name with values from varargin and return a movie.
+            switch name
+                case 'Scatter'
+                    plotterFunction=@(K) obj.scatterPlotSingleTimeStep(K);
+                case 'Shrinking'
+                    threshold=varargin{1};
+                    plotterFunction=@(K) obj.shrinkingPlotSingleTimeStep(threshold,K);
+                case 'Slice2D'
+                    delTri=varargin{1};
+                    plainPoints=varargin{2};
+                    plotterFunction=@(K) obj.slicePlotSingleTimeStep2D(delTri,plainPoints,K);
+                    name='2D slice';
+                case 'Slice3D'
+                    delTri=varargin{1};
+                    plainPoints=varargin{2};
+                    plotterFunction=@(K) obj.slicePlotSingleTimeStep3D(delTri,plainPoints,K);
+                    name='3D slice';
+                otherwise
+                    error([name,' not recognized']);
+            end
+            %Initialize the animation
+            fig1=obj.initAnimation(name);
+            %Plot the first step
+            plotterFunction(1);
+            %Fix axis
+            axis tight manual;
+            ax = gca;
+            ax.NextPlot = 'replaceChildren';
+            drawnow;
+            %Get first frame
+            movie(1) = getframe(fig1);
+            [~,loops]=size(obj.u);
+            movie(loops) = struct('cdata',[],'colormap',[]);
+            %Loop over all time steps and store frames
+            for j = 2:loops
+                plotterFunction(j);
+                drawnow;
+                movie(j) = getframe(fig1);
+            end
+            %Append the movie to movies
+            obj.appendMovie(movie);
+        end
+        
+        %------------------Functions for scatter plot---------------------
+        
         function handler=scatterPlotSingleTimeStep(obj,K)
+        %scatterPlotSingleTimeStep(K) calls scatterPlotSingleTimeStep2D if
+        %dim=2 and scatterPlotSingleTimeStep3D if dim=3.
             if(obj.dim==2)
                 handler=obj.scatterPlotSingleTimeStep2D(K);
             elseif(obj.dim==3)
@@ -82,6 +181,8 @@ classdef Plotter < handle
         end
         
         function handler=scatterPlotSingleTimeStep2D(obj,K)
+        %scatterPlotSingleTimeStep(K) plots a heat scatter plot in two
+        %dimensions
             if(not(obj.dim==2))
                 error('The dimension of the mesh should be 2');
             end
@@ -89,10 +190,12 @@ classdef Plotter < handle
                 error(['K has to be between 1 and ',length(obj.u(1,:))]);
             end
             handler=scatter(obj.mesh.points(:,1),obj.mesh.points(:,2),10.*ones(length(obj.mesh.points(:,1)),1),obj.colorConverter(K),'filled');
-            obj.u(:,K)
+            obj.addLegend(K);
         end
         
         function handler=scatterPlotSingleTimeStep3D(obj,K)
+        %scatterPlotSingleTimeStep(K) plots a heat scatter plot in three
+        %dimensions
             if(not(obj.dim==3))
                 error('The dimension of the mesh should be 3');
             end
@@ -100,81 +203,26 @@ classdef Plotter < handle
                 error(['K has to be between 1 and ',length(obj.u(1,:))]);
             end
             handler=scatter3(obj.mesh.points(:,1),obj.mesh.points(:,2),obj.mesh.points(:,3),10.*ones(length(obj.mesh.points(:,1)),1),obj.colorConverter(K),'filled');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1)/60) 'min' newline...
-                'u_{average}=' num2str(mean(obj.u(:,K))-273) '°C' newline...
-                'u_{min}=' num2str(min(obj.u(:,K))-273) '°C' newline...
-                'u_{max}=' num2str(max(obj.u(:,K))-273) '°C'],'Location','northoutside');        end
-        
+            obj.addLegend(K);
+        end
+                    
         function movie=animateScatterPlot(obj)
-            fig1=figure('Name','Scatter plot animation');
-            title('Scatter plot animation');
-            if(obj.dim==2)
-                xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
-                ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
-            elseif(obj.dim==3)
-                xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
-                ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
-                zlabel([num2str(min(obj.mesh.points(:,3))),'<= z <= ',num2str(max(obj.mesh.points(:,3)))]); % z-axis label
-            else
-                error('animateScatterPlot can only plot 2 or 3 dimensions.');
-            end
-            obj.scatterPlotSingleTimeStep(1);
-            axis tight manual;
-            ax = gca;
-            ax.NextPlot = 'replaceChildren';
-            drawnow;
-            movie(1) = getframe(fig1);
-            [~,loops]=size(obj.u);
-            movie(loops) = struct('cdata',[],'colormap',[]);
-            for j = 2:loops
-                obj.scatterPlotSingleTimeStep(j);
-                drawnow;
-                movie(j) = getframe(fig1);
-            end
-            obj.appendMovie(movie);
+        %animateScatterPlot() will create an animated scatter heat plot.
+            movie=obj.animatePlot('Scatter');
         end
         
-        function movie=shrinkingPlot(obj,threshold)
-        %Plots an animation over the timesteps in u where u<=threshold. The
-        %animation will be the bounary of the points where u<=thresholds
-        %holds.
-            fig1=figure('Name','Shrinking plot animation');
-            title('Shrinking plot animation');
-            if(obj.dim==2)
-                xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
-                ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
-            elseif(obj.dim==3)
-                xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
-                ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
-                zlabel([num2str(min(obj.mesh.points(:,3))),'<= z <= ',num2str(max(obj.mesh.points(:,3)))]); % z-axis label
-            else
-                error('shrinkingPlot can only plot 2 or 3 dimensions.');
-            end
-            obj.shrinkingPlotSingleStep(threshold,1);
-            axis tight manual;
-            ax = gca;
-            ax.NextPlot = 'replaceChildren';
-            drawnow;
-            movie(1) = getframe(fig1);
-            [~,loops]=size(obj.u);
-            movie(loops) = struct('cdata',[],'colormap',[]);
-            for j = 2:loops
-                obj.shrinkingPlotSingleStep(threshold,j);
-                drawnow;
-                movie(j) = getframe(fig1);
-            end
-            obj.appendMovie(movie);
-        end
-            
+        %-----------------Functions for shrinking plot--------------------
         
-        function handler=shrinkingPlotSingleStep(obj,threshold,K)
-        %Plots the boundary of the area/volume in which u<=threshold in
-        %timestep k
+        function handler=shrinkingPlotSingleTimeStep(obj,threshold,K)
+        %shrinkingPlotSingleTimeStep(threshold,K)Plots the boundary of the
+        %area/volume in which u<=threshold in timestep k. This is realy
+        %slow and does not look as good as hoped
             %Find the position of the values of u where u<=threshold
             position=find(obj.u(:,K)<=threshold);
             %If all points fullfill u<=threshold plot empty plot
             if(isempty(position))
                 handler=obj.boundaryPlot([]);
+                obj.addLegend(K);
                 return;
             end
             %Create vector, that projects to the remaining points
@@ -217,15 +265,18 @@ classdef Plotter < handle
             %Create triangulation
             if(length(points(:,1))<=4)
                 handler=obj.boundaryPlot([]);
+                obj.addLegend(K);
                 return
             end
             tri=triangulation(triangles,points);
             %Find boundry of the triangulation and plot it
             handler=obj.boundaryPlot(tri.freeBoundary());
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1))],'Location','northoutside');
+            obj.addLegend(K);
         end
         
         function handler=boundaryPlot(obj,boundary)
+        %boundaryPlot(boundary) calls boundaryPlot2D(boundary) if dim==2
+        %and boundaryPlot3D(boundary) if dim==3.
             if(obj.dim==2)
                 handler=obj.boundaryPlot2D(boundary);
             elseif(obj.dim==3)
@@ -236,9 +287,10 @@ classdef Plotter < handle
         end
         
         function handler=boundaryPlot2D(obj,boundary)
-        %plots the given boundary within the 2D-mesh in obj. The boundary does
-        %not need to be the boundary of the mesh.
-            %Find path through the points that represent boundary
+        %boundaryPlot2D(boundary) plots the given boundary within the
+        %2D-mesh in obj. The boundary does not need to be the boundary of
+        %the mesh.
+            %Find path through the points that represent the boundary
             if(isempty(boundary))
                 %Plot nothing
                 handler=scatter3(obj.mesh.points(1,1),obj.mesh.points(1,2),obj.mesh.points(1,3),'MarkerEdgeColor','white');
@@ -267,16 +319,15 @@ classdef Plotter < handle
             end
             %plot the boundary
             handler=patch('Faces',faces,'Vertices',obj.mesh.points,'EdgeColor','blue','FaceColor','none');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1))],'Location','northoutside');
         end
         
         function handler=boundaryPlot3D(obj,boundary)
-        %plots the given boundary within the 3D-mesh in obj. The boundary does
-        %not need to be the boundary of the mesh.
+        %boundaryPlot3D(boundary) plots the given boundary within the
+        %3D-mesh in obj. The boundary does not need to be the boundary of
+        %the mesh.
             if(isempty(boundary))
                 %Plot nothing
                 handler=scatter3(obj.mesh.points(1,1),obj.mesh.points(1,2),obj.mesh.points(1,3),'MarkerEdgeColor','white');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1))],'Location','northoutside');
                 return;
             else
                 l=length(boundary(:,1));
@@ -297,23 +348,28 @@ classdef Plotter < handle
             handler=fill3(X,Y,Z,C);
         end
         
-        function [plain_points,projection]=getPlainPoints(obj,eps,E)
-            projection=zeros(length(obj.mesh.points(:,1)),1);
-            plain_points=zeros(length(obj.mesh.points(:,1)),3);
-            counter=0;
-            for k=1:length(obj.mesh.points(:,1))
-                if(E.closeTo(obj.mesh.points(k,:)',eps))
-                    counter=counter+1;
-                    projection(counter)=k;
-                    plain_points(counter,:)=obj.mesh.points(k,:);
-                end
-            end
-            plain_points=plain_points(1:counter,:);
-            projection=projection(1:counter);
-        end 
+        function movie=shrinkingPlot(obj,threshold)
+        %shrinkingPlot(threshold) plots an animation over the timesteps in
+        %u where u<=threshold. The animation will plot the bounary of the
+        %points where u<=thresholds holds.
+            movie=obj.animatePlot('Shrinking',threshold);
+        end
+        
+        %--------------------Functions for slice plots--------------------
         
         function movie=animateSlicePlot2D(obj,varargin)
-        %Plots an animation over the timesteps in u on the slice where x=0.
+        %animateSlicePlot2D(vargin) Plots a heat animation on a slice
+        %plane over the timesteps in u. The slice plane is by default the
+        %standard plane where x=0, but can also be given in varargin. The
+        %density of points is by default given by 0.005
+        %Options for varargin:
+        %varargin=(density)
+        %       where density is the fineness of the plot
+        %varargin=(R,v_o)
+        %       where the plain is given by R, the rotation matrix of
+        %       compared to the standard plane and v_0 is the moving
+        %varargin=(density,R,v_o)
+        %       where density,R and v_o have the same meaning as above
             if(nargin==1)
                 density=0.005;
                 plain=Plain(eye(3),zeros(3,1));
@@ -335,36 +391,15 @@ classdef Plotter < handle
                 plainPoints(k,:)=plain.plain(delTri.Points(k,1),delTri.Points(k,2))';
             end
             
-            fig1 = figure('Name','Slice plot animation 2D');
-            title('Slice plot animation 2D');
-            xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
-            ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
-           
-            obj.slicePlotSingleStep2D(delTri,plainPoints,1);
-            axis tight manual;
-            ax = gca;
-            ax.NextPlot = 'replaceChildren';
-            drawnow;
-            movie(1) = getframe(fig1);
-            [~,loops]=size(obj.u);
-            movie(loops) = struct('cdata',[],'colormap',[]);
-            for j = 2:loops
-                obj.slicePlotSingleStep2D(delTri,plainPoints,j);
-                drawnow;
-                movie(j) = getframe(fig1);
-            end
-            obj.appendMovie(movie);
+            movie=obj.animatePlot('Slice2D',delTri,plainPoints);
         end
         
-        function handler=slicePlotSingleStep2D(obj,delTri,plainPoints,K)
+        function handler=slicePlotSingleTimeStep2D(obj,delTri,plainPoints,K)
             interpol = scatteredInterpolant(obj.mesh.points,obj.u(:,K));
             u_test=interpol(plainPoints(:,1),plainPoints(:,2),plainPoints(:,3));
             C=Plotter.colorConverterStatic(u_test,obj.u_min,obj.u_max);
             handler=patch('Faces',delTri.ConnectivityList,'Vertices',delTri.Points,'FaceColor','flat','FaceVertexCData',C,'EdgeColor','none');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1)/60) 'min' newline...
-                'u_{average}=' num2str(mean(u_test)-273) '°C' newline...
-                'u_{min}=' num2str(min(u_test)-273) '°C' newline...
-                'u_{max}=' num2str(max(u_test)-273) '°C'],'Location','northoutside');
+            obj.addLegend(K);
         end
         
         function movie=animateSlicePlot3D(obj,varargin)
@@ -390,38 +425,16 @@ classdef Plotter < handle
                 plainPoints(k,:)=plain.plain(delTri.Points(k,1),delTri.Points(k,2))';
             end
             
-            fig1=figure('Name','Slice plot animation 3D');
-            title('Slice plot animation 3D');
-            view(3);
-            xlabel([num2str(min(obj.mesh.points(:,1))),'<= x <= ',num2str(max(obj.mesh.points(:,1)))]); % x-axis label
-            ylabel([num2str(min(obj.mesh.points(:,2))),'<= y <= ',num2str(max(obj.mesh.points(:,2)))]); % y-axis label
-            zlabel([num2str(min(obj.mesh.points(:,3))),'<= z <= ',num2str(max(obj.mesh.points(:,3)))]); % z-axis label
-            
-            obj.slicePlotSingleStep3D(delTri,plainPoints,1);
-            axis tight manual;
-            ax = gca;
-            ax.NextPlot = 'replaceChildren';
-            drawnow;
-            movie(1) = getframe(fig1);
-            [~,loops]=size(obj.u);
-            movie(loops) = struct('cdata',[],'colormap',[]);
-            for j = 2:loops
-                obj.slicePlotSingleStep3D(delTri,plainPoints,j);
-                drawnow;
-                movie(j) = getframe(fig1);
-            end
-            obj.appendMovie(movie);
+            movie=obj.animatePlot('Slice3D',delTri,plainPoints);
         end
         
-        function handler=slicePlotSingleStep3D(obj,delTri,plainPoints,K)
+        function handler=slicePlotSingleTimeStep3D(obj,delTri,plainPoints,K)
             interpol = scatteredInterpolant(obj.mesh.points,obj.u(:,K));
             u_test=interpol(plainPoints(:,1),plainPoints(:,2),plainPoints(:,3));
             C=Plotter.colorConverterStatic(u_test,obj.u_min,obj.u_max);
             handler=patch('Faces',delTri.ConnectivityList,'Vertices',plainPoints,'FaceColor','flat','FaceVertexCData',C,'EdgeColor','none');
-            legend(['t=',num2str(obj.timeInterval.descreteInterval((K-1)*obj.timeInterval.n_to_plot+1)/60) 'min' newline...
-                'u_{average}=' num2str(mean(u_test)-273) '°C' newline...
-                'u_{min}=' num2str(min(u_test)-273) '°C' newline...
-                'u_{max}=' num2str(max(u_test)-273) '°C'],'Location','northoutside');        end
+            obj.addLegend(K);
+        end
         
         function delTri=getPlainTriangulation(obj,plain,density)
             %Rotate
