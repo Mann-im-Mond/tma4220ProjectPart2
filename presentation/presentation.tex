@@ -28,10 +28,10 @@
   \fbox{\normalcolor$\displaystyle#1$}}}
 	
 
-\title[TMA4212 - Project]{Nonlinear Schrödinger Equation}
-\author[Maximilian, Anders, Sander, Hans]{Maximilian Kieler, Anders Sørby, Sander Switsers, Hans Pieper}
+\title[TMA4220 - Project]{How to bake the perfect cake}
+\author[Simon, Hans]{Simon Thomä, Hans Pieper}
 \institute[]{
-	Numerical solution of differential equations by difference methods
+	Numerical Solution of Partial Differential Equations Using Element Methods
 }
 
 \date{\today}
@@ -50,13 +50,10 @@
 	\subsection{The Equation}
 	
 	\begin{frame}
-		\frametitle{Nonlinear Schrödinger Equation}
+		\frametitle{Heat Equation}
 		\begin{block}{}
 			\begin{align}
-				i u_t + u_{xx} = \lambda |u|^2 u &  \text{\quad on } \left[-\pi, \pi \right] \times \left(0, T\right) \nonumber \\
-				u(x,0) = u_0(x) &  \text{\quad on } \left[-\pi, \pi \right] \tag{NLS} \label{eq:sg} \\ 
-				u(-\pi,t) = u(\pi,t) &  \text{\quad on } \left(0,T \right) \nonumber \\
-				\nonumber
+				Equation
 			\end{align}
 		\end{block}
 	\end{frame}
@@ -67,24 +64,11 @@
 		\begin{block}{Theorem}
 			Let $u_0\in H^1(\left[-\pi, \pi \right],\mathbb{C})$ and the energie of $u_0$, $E(u_0)<\infty$ be finite, then there exists a unique solution of \ref{eq:sg}.
 		\end{block}
-		\begin{equation*}
-			E(u_0):=\int\limits_{\left[-\pi, \pi \right]} \frac{1}{2} |\nabla u_0|^2-\frac{1}{4}\lambda|u_0|^4 dx
-		\end{equation*}
 	\end{frame}
 	
 	\begin{frame}
 		\frametitle{Existence and Uniqueness}
 		\begin{block}{Duhamel's principle}
-			\begin{equation*}
-				u(t) = e^{it\laplace}u_0 - i \int\limits_0^t e^{i(t-s)\laplace}\left(-\lambda|u(s)|^2u(s)\right)ds
-			\end{equation*}
-		\end{block}
-		\begin{block}{Uniqueness}
-			Let $u_1, u_2$ two solutions of \ref{eq:sg} then
-			\begin{equation*}
-				\|u_1(t)-u_2(t)\|_{L^4} \leq c(\lambda,u_0,N(t))T^\frac{5}{4}\sup\limits_{0\leq s\leq t}\|u_1(s)-u_2(s)\|_{L^4} 
-			\end{equation*}
-			for an arbitrary but fixed $t$ and $T$ can be chosen such that the right hand side is smaller equal the left hand side.
 		\end{block}
 	\end{frame}
 	
@@ -94,131 +78,9 @@
 	\begin{frame}
 		\frametitle{Discretisation schemes}
 		\begin{block}{Original}
-			\fontsize{7.7}{8}{
-				\begin{align*}
-					\frac{i U^{n+1}_j}{k} + \frac{U^{n+1}_{j-1} - 2U^{n+1}_j + U^{n+1}_{j+1}}{2h^2} - \frac{\lambda}{2}\boxed{\left| U^{n+1}_j \right|^2}U^{n+1}_j &= \frac{i U^{n}_j}{k} - \frac{U^{n}_{j-1} - 2U^{n}_j + U^{n}_{j+1}}{2h^2} + \frac{\lambda}{2} \left| U^{n}_j \right|^2U^{n}_j \\
-					F(\vec U^{n+1}, \vec U^n) &= 0
-				\end{align*}
-			}%
-		\end{block}
-		\begin{equation*}
-			U(x_j,t_{n+1}) \approx U(x_j,t_n) + U_t(x_j,t_n)\cdot k + \ldots
-		\end{equation*}
-		\begin{block}{Modified}
-			\fontsize{7.7}{8}{
-				\begin{flalign*}
-					\frac{i U^{n+1}_j}{k} + \frac{U^{n+1}_{j-1} - 2U^{n+1}_j + U^{n+1}_{j+1}}{2h^2} - \frac{\lambda}{2}\boxed{\left| U^{n}_j \right|^2}U^{n+1}_j &= \frac{i U^{n}_j}{k} - \frac{U^{n}_{j-1} - 2U^{n}_j + U^{n}_{j+1}}{2h^2} + \frac{\lambda}{2} \left| U^{n}_j \right|^2U^{n}_j \\
-					A(\vec U^{n}) \vec U^{n+1} &= B(\vec U^n) \vec U^n
-				\end{flalign*}
-			}%
 		\end{block}
 	\end{frame}
 	
-	\subsection{Stability}
-    \begin{frame}{Stability}
-	    \begin{block}{Stability criterion}
-	        \begin{equation*}
-	            \frac{4h^4 + 9k^2}{k^2 h^4} \leq  \frac{1}{3} |\lambda|( 1 + \mu k)
-    	    \end{equation*}
-	    \end{block}
-	\end{frame}
-	
-	\section{Convergence}
-	\begin{frame}{Complexity}
-	    \begin{block}{Crank-Nicolson}
-	        \begin{enumerate}
-	            \item in space: order 2
-	            \item in time: order 2
-	        \end{enumerate}
-	    \end{block}
-	    \begin{block}{linear Crank-Nicolson}
-	        \begin{enumerate}
-	            \item in space: order 2
-	            \item in time: order 1
-	        \end{enumerate}
-	    \end{block}
-	\end{frame}
-
-	\begin{frame}
-		\frametitle{Convergence plots}
-		\begin{figure}[htbp]
-			\begin{minipage}{0.49\linewidth}
-				\centering
-				\includegraphics[width=\linewidth]{images/CN_err_space.png}
-			\end{minipage}
-			\hfill
-			\begin{minipage}{0.49\linewidth}
-				\centering
-				\includegraphics[width=\linewidth]{images/CN_err_time.png}
-			\end{minipage}%
-		\end{figure}%
-		\begin{figure}[htbp]
-			\begin{minipage}{0.49\linewidth}
-				\centering
-				\includegraphics[width=\linewidth]{images/CN_LIN_err_space.png}
-				\caption{in space}
-			\end{minipage}
-			\hfill
-			\begin{minipage}{0.49\linewidth}
-				\centering
-				\includegraphics[width=\linewidth]{images/CN_LIN_err_time.png}
-				\caption{in time}
-			\end{minipage}
-		\end{figure}
-	\end{frame}
-	
-	\section{Numerical Implementation}
-	\subsection{Crank-Nicolson}
-	
-	\begin{frame}
-		\frametitle{Crank-Nicolson}
-		\begin{block}{}
-			\fontsize{7.7}{8}{
-				\begin{align*}
-					\frac{i U^{n+1}_j}{k} + \frac{U^{n+1}_{j-1} - 2U^{n+1}_j + U^{n+1}_{j+1}}{2h^2} - \frac{\lambda}{2}\boxed{\left| U^{n+1}_j \right|^2}U^{n+1}_j &= \frac{i U^{n}_j}{k} - \frac{U^{n}_{j-1} - 2U^{n}_j + U^{n}_{j+1}}{2h^2} + \frac{\lambda}{2} \left| U^{n}_j \right|^2U^{n}_j \\
-					F(\vec U^{n+1}, \vec U^n) &= 0
-				\end{align*}
-			}%
-		\end{block}
-		\vspace{7pt}
-		Using scipy.optimize.newton\_krylov (Python)
-		\begin{itemize}
-			\item Memory: Jacobian
-			\item Runtime: no easy way to parallelisation
-		\end{itemize}
-		\vspace{7pt}
-		\begin{block}{}
-		\begin{center}
-			\large Only for small system sizes
-		\end{center}
-		\end{block}
-	\end{frame}
-	
-	\subsection{Linear Crank-Nicolson}
-	
-	\begin{frame}
-		\frametitle{Linear Crank-Nicolson}
-		\begin{block}{}
-			\fontsize{7.7}{8}{
-				\begin{flalign*}
-					\frac{i U^{n+1}_j}{k} + \frac{U^{n+1}_{j-1} - 2U^{n+1}_j + U^{n+1}_{j+1}}{2h^2} - \frac{\lambda}{2}\boxed{\left| U^{n}_j \right|^2}U^{n+1}_j &= \frac{i U^{n}_j}{k} - \frac{U^{n}_{j-1} - 2U^{n}_j + U^{n}_{j+1}}{2h^2} + \frac{\lambda}{2} \left| U^{n}_j \right|^2U^{n}_j \\
-					A(\vec U^{n}) \vec U^{n+1} &= B(\vec U^n) \vec U^n
-				\end{flalign*}
-			}%
-		\end{block}
-		\vspace{7pt}
-		Using Petsc and MPI (C/C++)
-		\begin{itemize}
-			\item Memory: Sparse Matrix
-			\item Runtime: parallel (distributed memory)
-		\end{itemize}
-		\vspace{7pt}
-		\fontsize{10}{8}{
-			\url{https://www.mcs.anl.gov/petsc/} \\
-			\url{https://www.open-mpi.org/} \\
-			\url{http://www.ntnu.edu/studies/courses/TMA4280}
-		}
-	\end{frame}
 	
 	\begin{frame}
 		\begin{center}
