@@ -1,0 +1,19 @@
+% !TeX spellcheck = en_GB 
+
+\section{\label{sec::problem}Problem}
+The theoretical problem we want to solve is the heat equation, which is given by:
+\begin{align}
+	\frac{\partial u}{\partial t} &= \nabla(\alpha\nabla u) \label{eqn::strongForm}\\
+	u(\vec{x},t)|_{\partial\Omega^D} &= u^D \label{eqn::dirichlet}\\
+	\left.\left( \frac{\partial u(\vec{x},t)}{\partial \nu}\right)\right|_{\partial\Omega^N} &= g \label{eqn::neumann}\\
+	u(\vec{x},t)|_{t=0} &=u_0(\vec{x}) \label{eqn::u_0}
+\end{align}
+Where:
+\begin{itemize}
+	\item $u(\vec{x},t)$ is the heat function.
+	\item $\alpha$ is a constant denoting the thermal diffusivity.
+	\item $\Omega$ is the domain of the problem.
+	\item $\partial\Omega^D$ is the part of the boundary with Dirichlet conditions.
+	\item $\partial\Omega^N$ is the part of the boundary with Neumann conditions.
+	\item $\nu$ is the normal vector on the boundary.
+\end{itemize} 

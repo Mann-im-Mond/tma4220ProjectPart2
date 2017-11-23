@@ -37,6 +37,7 @@
 \date{\today}
 
 \begin{document}
+
 	\begin{frame}
 		\titlepage
 	\end{frame}
@@ -46,41 +47,13 @@
 		\tableofcontents
 	\end{frame}
 
-	\section{Introduction}
-	\subsection{The Equation}
-	
-	\begin{frame}
-		\frametitle{Heat Equation}
-		\begin{block}{}
-			\begin{align}
-				Equation
-			\end{align}
-		\end{block}
-	\end{frame}
-	
-	\subsection{Existence and Uniqueness}
-	\begin{frame}
-		\frametitle{Existence and Uniqueness}
-		\begin{block}{Theorem}
-			Let $u_0\in H^1(\left[-\pi, \pi \right],\mathbb{C})$ and the energie of $u_0$, $E(u_0)<\infty$ be finite, then there exists a unique solution of \ref{eq:sg}.
-		\end{block}
-	\end{frame}
-	
-	\begin{frame}
-		\frametitle{Existence and Uniqueness}
-		\begin{block}{Duhamel's principle}
-		\end{block}
-	\end{frame}
-	
-	\section{Numerical Method}
-	\subsection{Discretisation schemes}
-	
-	\begin{frame}
-		\frametitle{Discretisation schemes}
-		\begin{block}{Original}
-		\end{block}
-	\end{frame}
-	
+\input{introduction.tex}
+\input{problem.tex}
+\input{setupSystem.tex}
+\input{odesolver.tex}
+
+\input{modelling.tex}
+\input{results.tex}
 	
 	\begin{frame}
 		\begin{center}
