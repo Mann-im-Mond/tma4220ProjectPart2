@@ -23,7 +23,7 @@ Using the above we can now define the bilinear form $a$ and linear operator $L$:
         a(u,v)&=\int\limits_{\Omega} \left(\frac{\partial u}{\partial t} v +  \alpha(\nabla u) \cdot (\nabla v) \right) \\
         L(v) &= \int\limits_{\partial\Omega^N} \alpha gv.
 \end{align*}
-From now on we assume that $a$ is bounded and coerzive and that $L$ is bounded. This will assure that we can use Cea's Lemma \cite{quarteroni2009numerical} and that thereby the heat equation has a unique solution.
+From now on we assume that $a$ is bounded and coerzive and that $L$ is bounded. This will assure that we can use Lax-Milgram \cite{quarteroni2009numerical} and that thereby the heat equation has a unique solution.
 
 To solve the weak formulation (\ref{eqn::weakForm}) numerically we discretise our domain $\Omega$. Our notation will follow \cite{quarteroni2009numerical}. Also we will not state every step in detail, if you wish, to get deeper insights in the theory behind it, we also recommend reading \cite{quarteroni2009numerical}.
 
