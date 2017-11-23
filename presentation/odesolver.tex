@@ -1,48 +1,48 @@
-% !TeX spellcheck = en_GB 
+\section{ODE }
 
-\section{\label{sec::odesolver}Solving the ODE}
+\begin{frame}
+\frametitle{ODE in Matrix form}
+	\begin{block}{}
+		\begin{flalign*}
+			M\dot{u}=Au+v(t)
+		\end{flalign*}
+	\end{block}
+	\begin{block}{}
+		\begin{flalign*}
+			\dot{u}=M^{-1}(Au+v(t)).
+		\end{flalign*}
+	\end{block}
+\end{frame}
 
-From equation (\ref{eqn::matrixForm}) we get a system of $n_D-1$ ordinary differential equation of order 1, where at most the inhomogeneous part can be non-linear. So we have to solve an initial value problem (IVP) of the form
-\begin{flalign*}
-    M\dot{u}=Au+v(t)
-\end{flalign*}
-on the interval $t\in\left[t_0,t_{max}\right]$ with initial value $u_0=u(t_0)$. If $M$ is invertible, the ODE can of course also be written as 
-\begin{flalign*}
-    \dot{u}=M^{-1}(Au+v(t)).
-\end{flalign*}
-Inverting a matrix of size $(n_D-1)\times(n_D-1)$ would probably at least take $\mathcal{O}(n_D^3)$ operations\cite{li2009fastsolver}. As this would in our case be of order $10^{12}$, we want to avoid this.
+\begin{frame}
+\frametitle{Explicit solvers}
+	\begin{block}{}
+		\begin{itemize}
+			\item Forward Euler
+			\begin{flalign*}
+				u_{n+1}=u_n+hM^{-1}(Au_n+v(t_n))
+			\end{flalign*}
+			\item Improved Forward Euler
+			\begin{flalign*}
+				u_{n+1}=u_n+\frac{h}{2}M^{-1}&\left(2Au_n+v(t_n)+v(t_{n+1}) \right. \\
+					&\left.+hA\cdot M^{-1}\left(Au_n+v(t_n)\right)\right)
+			\end{flalign*}
+		\end{itemize}
+	\end{block}
+\end{frame}
 
-To solve the IVP we implemented four different solvers. All of them are one step solvers, meaning to compute the next time step only the time step before is used. Two of the solvers are explicit and two implicit. The advantage of an explicit solver is normally, that for each time step only one matrix multiplication and one vector addition are needed. Since in our case we can't avoid solving a linear system with $M$ in every step, this will not really help. Also explicit methods are not stable -- especially over a long time \cite{dahmen2006numerik}. This is, because of an expectingly stiff matrix and a condition number, which increases with decreasing step width $h$. Normally baking a cake takes more than one hour. Considering, that we want to make at least one time second, this will result in quite many time steps.
-
-In contrast to that implicit methods are stable -- also over a longer time. The cost of that stability is, that we have to solve a linear system every time step. Considering, that in our case we also had to solve a system in the explicit case, this will not make it worse.
-
-The methods we implemented and their iterations are:
-\begin{itemize}
-    \item Implicit methods
-    \begin{enumerate}[label=\arabic*.)]
-        \item Forward Euler
-        \begin{flalign*}
-            u_{n+1}=u_n+hM^{-1}(Au_n+v(t_n))
-        \end{flalign*}
-        \item Improved Forward Euler
-        \begin{flalign*}
-            u_{n+1}=u_n+\frac{h}{2}M^{-1}\left(2Au_n+v(t_n)+v(t_{n+1})+hA\cdot M^{-1}\left(Au_n+v(t_n)\right)\right)
-        \end{flalign*}
-    \end{enumerate}
-    \item Explicit methods
-    \begin{enumerate}[resume,label=\arabic*.)]
-        \item Backwards Euler
-        \begin{flalign*}
-            (M-hA)u_{n+1}=Mu_n+hv(t_n)
-        \end{flalign*}
-        \item Crank-Nicholson
-        \begin{flalign*}
-            (M-\frac{h}{2}A)u_{n+1}=(M+\frac{h}{2}A)u_n+\frac{h}{2}(v(t_n)+v(t_{n+1}))
-        \end{flalign*}
-    \end{enumerate}
-\end{itemize}
-For all of these methods we have to solve a linear system in each time step. Instead of completely solving it completely, we only do some steps of an iterative solver. The most convincing solver we found is the preconditioned conjugate gradient (PCG) method. This method is implemented in MATLAB and can called by \verb|pcg|. As preconditioner we chose modified incomplete Cholesky decomposition, which is also implemented in MATLAB and can be called by
-\begin{lstlisting}[language=matlab]
-    ichol(Matrix,struct('michol','on')).
-\end{lstlisting}
-The paper \cite{tatebe1993multigrid} compares incomplete cholesky with multigrid as preconditioners for PCG. Here we see, that for solving huge matrices using multigrid as preconditioner is faster. But for our case, where the matrix is large but not huge, doing only a few steps with Cholesky as preconditioner takes around the same time.
+\begin{frame}
+\frametitle{Implicit solvers}
+	\begin{block}{}
+		\begin{itemize}
+			\item Backwards Euler
+			\begin{flalign*}
+				(M-hA)u_{n+1}=Mu_n+hv(t_n)
+			\end{flalign*}
+			\item Crank-Nicholson
+			\begin{flalign*}
+				(M-\frac{h}{2}A)u_{n+1}=(M+\frac{h}{2}A)u_n+\frac{h}{2}(v(t_n)+v(t_{n+1}))
+			\end{flalign*}
+		\end{itemize}
+	\end{block}
+\end{frame}
