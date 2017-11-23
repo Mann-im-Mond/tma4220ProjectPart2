@@ -403,7 +403,19 @@ classdef Plotter < handle
         end
         
         function movie=animateSlicePlot3D(obj,varargin)
-        %Plots an animation over the timesteps in u on the slice where x=0.
+        %animateSlicePlot3D(vargin) Plots a heat animation on a slice
+        %plane visualized in space over the timesteps in u. The slice 
+        %plane is by default the standard plane where x=0, but can 
+        %also be given in varargin. The density of points is by default 
+        %given by 0.005
+        %Options for varargin:
+        %varargin=(density)
+        %       where density is the fineness of the plot
+        %varargin=(R,v_o)
+        %       where the plain is given by R, the rotation matrix of
+        %       compared to the standard plane and v_0 is the moving
+        %varargin=(density,R,v_o)
+        %       where density,R and v_o have the same meaning as above
             if(nargin==1)
                 density=0.005;
                 plain=Plain(eye(3),zeros(3,1));
