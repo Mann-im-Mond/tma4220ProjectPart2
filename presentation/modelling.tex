@@ -1,10 +1,24 @@
-\section{\label{sec::modelling}Modelling the cake}
-To model the baking process, we now only need a few more ingredients. First we have to know the thermal properties of cake dough and the baking form, which we will consider to be out of aluminium. For the dough \cite{baik1999modeling} found out, that the thermal diffusivity of cupcake dough, which should be close enough to our cake dough is $\alpha_{cake}=1.02\times 10^{-7} \SI{}{\meter/\second^2 } \text{ to } 1.698\times 10^{-7} \SI{}{\meter/\second^2}$. In the appendix of \cite{kothandaraman2006fundamentals} we find $\alpha_{Al} = 9.444\times 10^{-5} \SI{}{\meter/\second^2}$ for the thermal diffusivity of aluminium.
+% !TeX spellcheck = en_GB 
 
-Second we need the mesh, which models the cake and the baking form. This is given on the course-webpage and can be seen in figure \ref{fig::mesh}, where the yellow part identifies an aluminium stick. The rod helps to heat up the cake from the inside. For the radius we choose $15\SI{}{\centi\meter}$, as we want to have a big cake, which has a realistic chance, to get baked in a reasonable time.
+\section{Physical properties of the problem}
+\begin{frame}
+\begin{block}{Thermal diffusivities}
+\begin{align*}
+\alpha_{cake}=&1.02\times 10^{-7} \SI{}{\meter/\second^2 } \text{ to } 1.698\times 10^{-7} \SI{}{\meter/\second^2}\\
+\alpha_{Al} =&9.444\times 10^{-5} \SI{}{\meter/\second^2}\\
+\end{align*}
+\end{block}
+\begin{block}{radius}
+\begin{align*}
+r_{cake} =& 15\SI{}{\centi\meter}
+\end{align*}
+\end{block}
+\end{frame}
 
+\begin{frame}
+\frametitle{The Grid}
 \begin{figure}[htp]
         \centering
-        \includegraphics[width=0.5\textwidth]{figures/mesh.png}
-        \caption{\label{fig::mesh} Mesh of the cake}
+        \includegraphics[width=0.8\textwidth]{figures/mesh.png}
 \end{figure}
+\end{frame}
