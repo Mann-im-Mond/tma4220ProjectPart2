@@ -1,6 +1,4 @@
-function mesh = getCakeMesh(folder, neumannIdentifier, radius)
-    addpath('../utils/')
-    
+function mesh = getCakeMesh(folder, neumannIdentifier, radius)    
     tetrFile = [folder '/cake_tetr.m'];
     fid=fopen(tetrFile);
     s=textscan(fid,'%f %f %f %f %f %f');
